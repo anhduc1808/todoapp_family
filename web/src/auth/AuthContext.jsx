@@ -3,7 +3,7 @@ import axios from 'axios'
 
 const AuthContext = createContext(null)
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000/api'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://todoapp-family.onrender.com/api'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
