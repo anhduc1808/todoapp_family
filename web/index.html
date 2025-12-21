@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>web</title>
+    <!-- Facebook SDK -->
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <!-- Google Sign-In API -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      // Apply theme ngay từ đầu, trước khi React render
+      // Đọc từ localStorage, mặc định là light mode
+      (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const shouldBeDark = savedTheme === 'dark';
+        
+        const html = document.documentElement;
+        if (html) {
+          if (shouldBeDark) {
+            html.classList.add('dark');
+            html.classList.remove('light');
+            html.setAttribute('data-theme', 'dark');
+            html.style.colorScheme = 'dark';
+          } else {
+            html.classList.remove('dark');
+            html.classList.add('light');
+            html.setAttribute('data-theme', 'light');
+            html.style.colorScheme = 'light';
+          }
+        }
+        
+        // Đợi body được tạo ra
+        const applyBodyStyles = () => {
+          if (document.body) {
+            if (shouldBeDark) {
+              document.body.style.backgroundColor = '#111827';
+              document.body.style.color = '#F9FAFB';
+            } else {
+              document.body.style.backgroundColor = '#F9FAFB';
+              document.body.style.color = '#111827';
+            }
+          }
+        };
+        
+        if (document.body) {
+          applyBodyStyles();
+        } else {
+          // Nếu body chưa có, đợi DOMContentLoaded
+          document.addEventListener('DOMContentLoaded', applyBodyStyles);
+        }
+        
+        // Chỉ set localStorage nếu chưa có
+        if (!savedTheme) {
+          localStorage.setItem('theme', 'light');
+        }
+      })();
+      
+      // Initialize Facebook SDK - sẽ được khởi tạo trong component
+      window.fbAsyncInit = function() {
+        // SDK sẽ được init trong component với App ID từ env
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

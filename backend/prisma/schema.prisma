@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  avatarUrl    String?   @map("avatar_url")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  familiesOwned Family[] @relation("OwnerFamilies")
+  memberships   FamilyMember[]
+  tasksCreated  Task[]      @relation("TasksCreated")
+  taskAssignees TaskAssignee[]
+  comments      Comment[]
+  reactions     Reaction[]
+  notifications Notification[]
+}
+
+model Family {
+  id         Int            @id @default(autoincrement())
+  name       String
+  owner      User           @relation("OwnerFamilies", fields: [ownerId], references: [id])
+  ownerId    Int            @map("owner_id")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  members    FamilyMember[]
+  tasks      Task[]
+  inviteCode String?        @unique @map("invite_code")
+}
+
+model FamilyMember {
+  id        Int      @id @default(autoincrement())
+  family    Family   @relation(fields: [familyId], references: [id])
+  familyId  Int      @map("family_id")
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  role      String
+  status    String   @default("active")
+  joinedAt  DateTime @default(now()) @map("joined_at")
+
+  @@unique([familyId, userId])
+}
+
+model Task {
+  id          Int            @id @default(autoincrement())
+  family      Family         @relation(fields: [familyId], references: [id])
+  familyId    Int            @map("family_id")
+  title       String
+  description String?
+  priority    String         @default("normal")
+  dueDate     DateTime?      @map("due_date")
+  status      String         @default("todo")
+  imageUrl    String?        @map("image_url")
+  createdBy   User           @relation("TasksCreated", fields: [createdById], references: [id])
+  createdById Int            @map("created_by")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  assignees     TaskAssignee[]
+  comments      Comment[]
+  reactions     Reaction[]
+  notifications Notification[]
+}
+
+model TaskAssignee {
+  id      Int   @id @default(autoincrement())
+  task    Task  @relation(fields: [taskId], references: [id])
+  taskId  Int   @map("task_id")
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int   @map("user_id")
+
+  @@unique([taskId, userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    Int      @map("task_id")
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  reactions      Reaction[]
+  notifications  Notification[]
+}
+
+model Reaction {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      @map("user_id")
+  task       Task?    @relation(fields: [taskId], references: [id])
+  taskId     Int?     @map("task_id")
+  comment    Comment? @relation(fields: [commentId], references: [id])
+  commentId  Int?     @map("comment_id")
+  type       String
+  createdAt  DateTime @default(now()) @map("created_at")
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      @map("user_id")
+  type       String
+  task       Task?    @relation(fields: [taskId], references: [id])
+  taskId     Int?     @map("task_id")
+  comment    Comment? @relation(fields: [commentId], references: [id])
+  commentId  Int?     @map("comment_id")
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+}

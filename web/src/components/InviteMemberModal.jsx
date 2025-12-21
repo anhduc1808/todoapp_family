@@ -1,0 +1,271 @@
+import { useState, useEffect } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import api from '../api/client'
+import Toast from './Toast'
+import { useLanguage } from '../language/LanguageContext'
+import { useTheme } from '../theme/ThemeContext'
+
+function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole }) {
+  const { t } = useLanguage()
+  const { isDark } = useTheme()
+  const queryClient = useQueryClient()
+  const [email, setEmail] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
+  const [toast, setToast] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  const { data: familyData } = useQuery({
+    queryKey: ['family', familyId],
+    queryFn: async () => {
+      const res = await api.get(`/families/${familyId}`)
+      return res.data
+    },
+    enabled: isOpen && !!familyId,
+  })
+
+  useEffect(() => {
+    if (familyData?.family?.inviteCode) {
+      setInviteCode(familyData.family.inviteCode)
+    }
+  }, [familyData])
+
+  const generateInviteMutation = useMutation({
+    mutationFn: async () => {
+      const res = await api.post(`/families/${familyId}/invite`)
+      return res.data
+    },
+    onSuccess: (data) => {
+      setInviteCode(data.inviteCode)
+      setToast({ message: t('inviteCodeCreated'), type: 'success' })
+    },
+    onError: (err) => {
+      setToast({ message: err.response?.data?.message || 'Không tạo được mã mời', type: 'error' })
+    },
+  })
+
+  const sendInviteMutation = useMutation({
+    mutationFn: async () => {
+      const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+    const link = `${frontendUrl}/join?code=${inviteCode}`
+      await navigator.clipboard.writeText(link)
+      return { success: true }
+    },
+    onSuccess: () => {
+      setToast({ message: t('linkCopiedMessage'), type: 'success' })
+      setEmail('')
+    },
+    onError: (err) => {
+      setToast({ message: err.response?.data?.message || t('inviteFailed'), type: 'error' })
+    },
+  })
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ memberId, role }) => {
+      const res = await api.patch(`/families/${familyId}/members/${memberId}/role`, { role })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['family', familyId] })
+      setToast({ message: 'Đã cập nhật quyền thành công!', type: 'success' })
+    },
+    onError: (err) => {
+      setToast({ message: err.response?.data?.message || t('roleUpdateFailed'), type: 'error' })
+    },
+  })
+
+  const handleSendInvite = async (e) => {
+    e.preventDefault()
+    if (!email.trim()) {
+      setToast({ message: t('pleaseEnterEmail'), type: 'error' })
+      return
+    }
+
+    if (!inviteCode) {
+      // Tạo invite code trước
+      await generateInviteMutation.mutateAsync()
+    }
+
+    sendInviteMutation.mutate()
+  }
+
+  const handleCopyLink = async () => {
+    if (!inviteCode) {
+      // Tạo invite code trước
+      await generateInviteMutation.mutateAsync()
+    }
+
+    const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+    const link = `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setToast({ message: t('linkCopied'), type: 'success' })
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      setToast({ message: t('cannotCopyLink'), type: 'error' })
+    }
+  }
+
+  const getRoleLabel = (role) => {
+    const labels = {
+      owner: t('owner'),
+      admin: t('admin'),
+      member: t('member'),
+    }
+    return labels[role] || t('member')
+  }
+
+  const canChangeRole = (memberRole) => {
+    if (currentUserRole === 'owner') return true
+    if (currentUserRole === 'admin' && memberRole !== 'owner') return true
+    return false
+  }
+
+  if (!isOpen) return null
+
+  const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+  const projectLink = inviteCode || familyData?.family?.inviteCode
+    ? `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`
+    : ''
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="bg-white dark:bg-[#1F2937] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-600">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              {t('sendInvite')}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-slate-900 dark:text-slate-300 hover:text-slate-700 dark:hover:text-slate-100 text-lg font-medium"
+            >
+              {t('goBack')}
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Invite by Email */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                {t('inviteByEmail')}
+              </label>
+              <div className="flex gap-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 rounded-lg border-2 border-slate-300 dark:border-slate-500 bg-white dark:bg-[#25292D] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="neerajgurung99@gmail.com"
+                />
+                <button
+                  onClick={handleSendInvite}
+                  disabled={sendInviteMutation.isPending || generateInviteMutation.isPending}
+                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+                >
+                  {sendInviteMutation.isPending ? t('updating') : t('sendInviteBtn')}
+                </button>
+              </div>
+            </div>
+
+            {/* Members List */}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                {t('members')}
+              </h3>
+              <div className="space-y-3">
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between p-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-[#25292D] dark:bg-[#25292D]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {member.user.name?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm dark-card-text">
+                          {member.user.name}
+                        </p>
+                        <p className="text-xs dark-card-text">
+                          {member.user.email}
+                        </p>
+                      </div>
+                    </div>
+                    {canChangeRole(member.role) ? (
+                      <select
+                        value={member.role}
+                        onChange={(e) => {
+                          updateRoleMutation.mutate({
+                            memberId: member.id,
+                            role: e.target.value,
+                          })
+                        }}
+                        className="px-3 py-2 rounded-lg border-2 border-slate-300 dark:border-slate-500 bg-[#1F2937] dark:bg-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark-card-text"
+                      >
+                        {member.role === 'owner' ? (
+                          <option value="owner">{t('owner')}</option>
+                        ) : (
+                          <>
+                            <option value="admin">{t('admin')}</option>
+                            <option value="member">{t('member')}</option>
+                          </>
+                        )}
+                      </select>
+                    ) : (
+                      <span className="px-3 py-2 text-sm text-slate-900 dark:text-white" style={isDark ? { color: '#FFFFFF' } : {}}>
+                        {getRoleLabel(member.role)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Project Link */}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                {t('projectLink')}
+              </h3>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={projectLink}
+                  readOnly
+                  className="flex-1 rounded-lg border-2 border-slate-300 dark:border-slate-500 bg-[#25292D] dark:bg-[#25292D] px-4 py-3 text-sm dark-card-text"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition"
+                >
+                  {copied ? t('linkCopied') : t('copyLink')}
+                </button>
+              </div>
+              {!projectLink && (
+                <button
+                  onClick={() => generateInviteMutation.mutate()}
+                  disabled={generateInviteMutation.isPending}
+                  className="mt-2 text-sm text-orange-600 dark:text-orange-400 hover:underline"
+                >
+                  {generateInviteMutation.isPending ? t('creating') : t('inviteCode')}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </>
+  )
+}
+
+export default InviteMemberModal

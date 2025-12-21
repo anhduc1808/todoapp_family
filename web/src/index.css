@@ -1,0 +1,480 @@
+@import "tailwindcss";
+
+/* Base light mode styles - Theme mới */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #F9FAFB !important;
+  color: #111827 !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode - chỉ apply khi có class dark */
+html.dark body {
+  background-color: #111827 !important;
+  color: #F9FAFB !important;
+}
+
+/* Đảm bảo root element có background */
+#root {
+  min-height: 100vh;
+  background-color: #F9FAFB;
+  transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 0;
+}
+
+html.dark #root {
+  background-color: #111827;
+}
+
+/* Đảm bảo khi không có class dark, body và root có màu sáng */
+html:not(.dark) body,
+html.light body {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) #root,
+html.light #root {
+  background-color: #ffffff !important;
+}
+
+/* Force remove dark background khi ở light mode - Theme mới */
+html.light body,
+html:not(.dark) body,
+html[data-theme="light"] body {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+  color: #1E293B !important;
+}
+
+html.light #root,
+html:not(.dark) #root,
+html[data-theme="light"] #root {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+}
+
+/* Force dark background khi ở dark mode - Theme mới */
+html.dark body,
+html[data-theme="dark"] body {
+  background: #111827 !important;
+  background-color: #111827 !important;
+  color: #F9FAFB !important;
+}
+
+html.dark #root,
+html[data-theme="dark"] #root {
+  background: #111827 !important;
+  background-color: #111827 !important;
+  color: #F9FAFB !important;
+}
+
+/* Dark mode cards */
+html.dark .bg-white,
+html[data-theme="dark"] .bg-white {
+  background-color: #1F2937 !important;
+}
+
+html.dark .dark\:bg-slate-800,
+html[data-theme="dark"] .dark\:bg-slate-800 {
+  background-color: #1F2937 !important;
+}
+
+html.dark .dark\:bg-slate-900,
+html[data-theme="dark"] .dark\:bg-slate-900 {
+  background-color: #111827 !important;
+}
+
+html.dark .dark\:bg-\[#1E1E1E\],
+html[data-theme="dark"] .dark\:bg-\[#1E1E1E\] {
+  background-color: #1F2937 !important;
+}
+
+html.dark .dark\:bg-\[#121212\],
+html[data-theme="dark"] .dark\:bg-\[#121212\] {
+  background-color: #111827 !important;
+}
+
+/* Dark mode text colors - Typography hierarchy */
+html.dark .dark\:text-slate-100,
+html[data-theme="dark"] .dark\:text-slate-100 {
+  color: #F9FAFB !important;
+  font-weight: 600 !important; /* Headers và primary content - đậm hơn */
+}
+
+html.dark .dark\:text-slate-400,
+html[data-theme="dark"] .dark\:text-slate-400 {
+  color: #FFFFFF !important; /* Trắng tinh để tương phản tối đa với nền tối */
+  font-weight: 400 !important; /* Secondary text - nhẹ hơn */
+}
+
+html.dark .dark\:text-slate-300,
+html[data-theme="dark"] .dark\:text-slate-300 {
+  color: #FFFFFF !important; /* Trắng tinh để tương phản tối đa */
+  font-weight: 500 !important;
+}
+
+/* Force white text in dark mode for better contrast on dark cards */
+html.dark .dark\:text-white,
+html[data-theme="dark"] .dark\:text-white {
+  color: #FFFFFF !important;
+}
+
+/* Force white text specifically on dark card backgrounds */
+html.dark .dark\:from-slate-800 .dark\:text-white,
+html.dark .dark\:from-\[#1F2937\] .dark\:text-white,
+html[data-theme="dark"] .dark\:from-slate-800 .dark\:text-white,
+html[data-theme="dark"] .dark\:from-\[#1F2937\] .dark\:text-white {
+  color: #FFFFFF !important;
+}
+
+/* Force white text on elements inside dark gradient cards */
+html.dark [class*="dark:from-slate-800"] [class*="dark:text-white"],
+html.dark [class*="dark:from-[#1F2937]"] [class*="dark:text-white"],
+html[data-theme="dark"] [class*="dark:from-slate-800"] [class*="dark:text-white"],
+html[data-theme="dark"] [class*="dark:from-[#1F2937]"] [class*="dark:text-white"] {
+  color: #FFFFFF !important;
+}
+
+/* More specific selector for MemberProgressPage cards */
+html.dark .bg-gradient-to-br.dark\:from-slate-800 *,
+html.dark .bg-gradient-to-br.dark\:from-\[#1F2937\] *,
+html[data-theme="dark"] .bg-gradient-to-br.dark\:from-slate-800 *,
+html[data-theme="dark"] .bg-gradient-to-br.dark\:from-\[#1F2937\] * {
+  color: #FFFFFF !important;
+}
+
+/* Force white text on dark card backgrounds - Very specific selectors */
+html.dark [class*="from-slate-800"] [class*="dark:text-white"],
+html.dark [class*="from-[#1F2937]"] [class*="dark:text-white"],
+html[data-theme="dark"] [class*="from-slate-800"] [class*="dark:text-white"],
+html[data-theme="dark"] [class*="from-[#1F2937]"] [class*="dark:text-white"] {
+  color: #FFFFFF !important;
+}
+
+/* Force white text in InviteMemberModal dark cards */
+html.dark .dark\:bg-\[#25292D\] [class*="dark:text-white"],
+html.dark .dark\:bg-\[#25292D\] [class*="dark:text-slate-100"],
+html[data-theme="dark"] .dark\:bg-\[#25292D\] [class*="dark:text-white"],
+html[data-theme="dark"] .dark\:bg-\[#25292D\] [class*="dark:text-slate-100"] {
+  color: #FFFFFF !important;
+}
+
+/* Force white text using dark-card-text class - Highest priority - ALWAYS white */
+.dark-card-text,
+html.dark .dark-card-text,
+html[data-theme="dark"] .dark-card-text,
+html:not(.dark) .dark-card-text,
+html.light .dark-card-text,
+html[data-theme="light"] .dark-card-text {
+  color: #FFFFFF !important;
+}
+
+/* Force white text on light gradient backgrounds */
+html:not(.dark) [class*="from-sky-50"] .dark-card-text,
+html:not(.dark) [class*="from-emerald-50"] .dark-card-text,
+html:not(.dark) [class*="from-indigo-50"] .dark-card-text,
+html:not(.dark) [class*="from-teal-50"] .dark-card-text,
+html.light [class*="from-sky-50"] .dark-card-text,
+html.light [class*="from-emerald-50"] .dark-card-text,
+html.light [class*="from-indigo-50"] .dark-card-text,
+html.light [class*="from-teal-50"] .dark-card-text {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}
+
+/* Force white text on select elements in dark cards */
+html.dark .dark-card-text select,
+html.dark .dark-card-text option,
+html[data-theme="dark"] .dark-card-text select,
+html[data-theme="dark"] .dark-card-text option {
+  color: #FFFFFF !important;
+  background-color: #1F2937 !important;
+}
+
+/* Force dark text on select elements in light mode */
+html:not(.dark) .dark-card-text select,
+html:not(.dark) .dark-card-text option,
+html.light .dark-card-text select,
+html.light .dark-card-text option {
+  color: #111827 !important;
+  background-color: #FFFFFF !important;
+}
+
+/* Force white text on input elements in dark cards */
+html.dark .dark-card-text input,
+html[data-theme="dark"] .dark-card-text input {
+  color: #FFFFFF !important;
+}
+
+/* Force dark text on input elements in light mode */
+html:not(.dark) .dark-card-text input,
+html.light .dark-card-text input {
+  color: #111827 !important;
+}
+
+/* Dark mode - Labels khác với content */
+html.dark label,
+html[data-theme="dark"] label {
+  color: #F3F4F6 !important; /* Rất sáng để tương phản tốt */
+  font-weight: 500 !important;
+}
+
+html.dark th,
+html[data-theme="dark"] th {
+  color: #F3F4F6 !important; /* Rất sáng để tương phản tốt */
+  font-weight: 600 !important;
+  font-size: 0.875rem !important; /* 14px */
+  letter-spacing: 0.025em !important;
+}
+
+html.dark td,
+html[data-theme="dark"] td {
+  color: #F9FAFB !important;
+  font-weight: 400 !important;
+}
+
+/* Dark mode placeholder text - Sáng hơn để dễ đọc */
+html.dark input::placeholder,
+html[data-theme="dark"] input::placeholder,
+html.dark textarea::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #9CA3AF !important; /* Sáng hơn để tương phản tốt */
+  opacity: 1 !important;
+}
+
+html.dark .dark\:placeholder\:text-slate-400::placeholder,
+html[data-theme="dark"] .dark\:placeholder\:text-slate-400::placeholder {
+  color: #9CA3AF !important;
+  opacity: 1 !important;
+}
+
+html.dark .dark\:placeholder\:text-slate-500::placeholder,
+html[data-theme="dark"] .dark\:placeholder\:text-slate-500::placeholder {
+  color: #9CA3AF !important;
+  opacity: 1 !important;
+}
+
+/* Dark mode - Section titles */
+html.dark h1,
+html[data-theme="dark"] h1 {
+  color: #F9FAFB !important;
+  font-weight: 700 !important;
+}
+
+html.dark h2,
+html[data-theme="dark"] h2 {
+  color: #F9FAFB !important;
+  font-weight: 600 !important;
+}
+
+html.dark h3,
+html[data-theme="dark"] h3 {
+  color: #F9FAFB !important;
+  font-weight: 600 !important;
+}
+
+/* Dark mode borders - Sáng hơn để dễ nhìn thấy */
+html.dark .dark\:border-slate-700,
+html[data-theme="dark"] .dark\:border-slate-700 {
+  border-color: #4B5563 !important; /* Sáng hơn để tương phản tốt */
+}
+
+html.dark .dark\:border-slate-600,
+html[data-theme="dark"] .dark\:border-slate-600 {
+  border-color: #6B7280 !important; /* Sáng hơn để tương phản tốt */
+}
+
+html.dark .dark\:border-slate-500,
+html[data-theme="dark"] .dark\:border-slate-500 {
+  border-color: #6B7280 !important; /* Sáng hơn để tương phản tốt */
+}
+
+/* Dark mode accent color - Cam san hô #FF8A65 */
+html.dark .dark\:text-orange-400,
+html[data-theme="dark"] .dark\:text-orange-400 {
+  color: #FF8A65 !important;
+}
+
+html.dark .dark\:text-orange-300,
+html[data-theme="dark"] .dark\:text-orange-300 {
+  color: #FF8A65 !important;
+}
+
+html.dark .dark\:bg-orange-500,
+html[data-theme="dark"] .dark\:bg-orange-500 {
+  background-color: #FF8A65 !important;
+}
+
+html.dark .dark\:hover\:bg-orange-600,
+html[data-theme="dark"] .dark\:hover\:bg-orange-600 {
+  background-color: #FF7043 !important;
+}
+
+html.dark .dark\:group-hover\:text-orange-400,
+html[data-theme="dark"] .dark\:group-hover\:text-orange-400 {
+  color: #FF8A65 !important;
+}
+
+/* Dark mode borders - cập nhật - Sáng hơn để dễ nhìn thấy */
+html.dark .dark\:border-slate-700,
+html[data-theme="dark"] .dark\:border-slate-700 {
+  border-color: #6B7280 !important; /* Sáng hơn để tương phản tốt */
+}
+
+html.dark .dark\:border-slate-600,
+html[data-theme="dark"] .dark\:border-slate-600 {
+  border-color: #6B7280 !important; /* Sáng hơn để tương phản tốt */
+}
+
+/* Dark mode hover states */
+html.dark .dark\:hover\:bg-slate-700,
+html[data-theme="dark"] .dark\:hover\:bg-slate-700 {
+  background-color: #374151 !important;
+}
+
+html.dark .dark\:hover\:bg-slate-600,
+html[data-theme="dark"] .dark\:hover\:bg-slate-600 {
+  background-color: #374151 !important;
+}
+
+/* Force light mode styles - Theme mới */
+html.light body,
+html:not(.dark) body,
+html[data-theme="light"] body {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+  color: #1E293B !important;
+}
+
+html.light #root,
+html:not(.dark) #root,
+html[data-theme="light"] #root {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+}
+
+/* Force light mode styles */
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Light mode - Theme mới */
+html:not(.dark) .bg-white {
+  background-color: #FFFFFF !important;
+}
+
+/* Light mode text colors */
+html:not(.dark) .text-slate-900,
+html.light .text-slate-900 {
+  color: #111827 !important;
+}
+
+html:not(.dark) .text-slate-600,
+html.light .text-slate-600 {
+  color: #6B7280 !important;
+}
+
+html:not(.dark) .text-slate-500,
+html.light .text-slate-500 {
+  color: #6B7280 !important;
+}
+
+/* Light mode borders */
+html:not(.dark) .border-slate-200,
+html.light .border-slate-200 {
+  border-color: #E5E7EB !important;
+}
+
+html:not(.dark) .border-slate-300,
+html.light .border-slate-300 {
+  border-color: #E5E7EB !important;
+}
+
+/* Light mode accent color - Cam đậm #F4511E */
+html:not(.dark) .bg-orange-500,
+html.light .bg-orange-500 {
+  background-color: #F4511E !important;
+}
+
+html:not(.dark) .bg-orange-600,
+html.light .bg-orange-600 {
+  background-color: #E64A19 !important;
+}
+
+html:not(.dark) .text-orange-600,
+html.light .text-orange-600 {
+  color: #F4511E !important;
+}
+
+html:not(.dark) .text-orange-700,
+html.light .text-orange-700 {
+  color: #E64A19 !important;
+}
+
+html:not(.dark) .border-orange-500,
+html.light .border-orange-500 {
+  border-color: #F4511E !important;
+}
+
+html:not(.dark) .ring-orange-500,
+html.light .ring-orange-500 {
+  --tw-ring-color: #F4511E !important;
+}
+
+html:not(.dark) .bg-slate-900,
+html:not(.dark) .dark\:bg-slate-900 {
+  background-color: transparent !important;
+}
+
+html:not(.dark) .dark\:bg-slate-800 {
+  background-color: transparent !important;
+}
+
+/* Đảm bảo sidebar luôn giữ màu cam, không bị ảnh hưởng bởi dark mode */
+aside[class*="bg-gradient-to-b from-orange"],
+aside[class*="bg-gradient-to-b from-orange"] * {
+  background-color: rgb(249 115 22) !important;
+  background-image: linear-gradient(to bottom, rgb(249 115 22), rgb(234 88 12)) !important;
+  color: white !important;
+}
+
+html.dark aside[class*="bg-gradient-to-b from-orange"],
+html.dark aside[class*="bg-gradient-to-b from-orange"] * {
+  background-color: rgb(249 115 22) !important;
+  background-image: linear-gradient(to bottom, rgb(249 115 22), rgb(234 88 12)) !important;
+  color: white !important;
+}
+
+/* Force light mode cho main content khi không có class dark */
+html:not(.dark) main,
+html.light main,
+html[data-theme="light"] main {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) main *:not(aside *):not(button):not([class*="orange"]):not([class*="bg-white"]):not([class*="text-white"]) {
+  color: inherit;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
