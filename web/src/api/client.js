@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://todoapp-family.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_BASE || 'https://family-todoapp-backend-production.up.railway.app/api',
 })
 
 api.interceptors.request.use((config) => {

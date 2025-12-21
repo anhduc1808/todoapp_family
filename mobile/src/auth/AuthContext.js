@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const API_BASE = process.env.EXPO_PUBLIC_API_BASE || 'http://localhost:4000/api';
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE || 'https://family-todoapp-backend-production.up.railway.app/api';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

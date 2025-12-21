@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://todoapp-family.onrender.com'
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://family-todoapp-backend-production.up.railway.app'
 
 const socket = io(SOCKET_URL, {
   autoConnect: false,

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_BASE || 'http://localhost:4000/api',
+  baseURL: process.env.EXPO_PUBLIC_API_BASE || 'https://family-todoapp-backend-production.up.railway.app/api',
 });
 
 api.interceptors.request.use(async (config) => {

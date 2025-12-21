@@ -186,10 +186,13 @@ Tạo file `.env` trong thư mục `web/`:
 
 ```env
 # API Base URL
-VITE_API_BASE=http://localhost:4000/api
+VITE_API_BASE=https://family-todoapp-backend-production.up.railway.app/api
 
 # Frontend URL
 VITE_FRONTEND_URL=http://localhost:5173
+
+# Socket URL (optional)
+VITE_SOCKET_URL=https://family-todoapp-backend-production.up.railway.app
 
 # Facebook App ID
 VITE_FACEBOOK_APP_ID=your-facebook-app-id
@@ -207,7 +210,7 @@ cd backend
 npm run dev
 ```
 
-Backend sẽ chạy tại `http://localhost:4000`
+Backend sẽ chạy tại `http://localhost:4000` (local) hoặc `https://family-todoapp-backend-production.up.railway.app` (production)
 
 ### Chạy Frontend Web
 
@@ -216,7 +219,7 @@ cd web
 npm run dev
 ```
 
-Frontend sẽ chạy tại `http://localhost:5173`
+Frontend sẽ chạy tại `http://localhost:5173` và tự động kết nối với backend tại `https://family-todoapp-backend-production.up.railway.app`
 
 ### Chạy Mobile (tùy chọn)
 
