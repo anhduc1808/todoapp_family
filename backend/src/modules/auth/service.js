@@ -83,8 +83,17 @@ exports.login = async (req, res) => {
     }
 
     const { email, password } = req.body;
+    console.log('Received login request:', { email: email ? email.substring(0, 10) + '...' : 'missing', hasPassword: !!password });
+    
     if (!email || !password) {
+      console.log('Missing fields - email:', !!email, 'password:', !!password);
       return res.status(400).json({ message: 'Missing fields' });
+    }
+    
+    // Validate email format
+    if (!email.includes('@')) {
+      console.log('Invalid email format:', email);
+      return res.status(400).json({ message: 'Invalid email format' });
     }
 
     console.log('Login attempt for email:', email);

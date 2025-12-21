@@ -131,9 +131,14 @@ app.get('/api/test/users', async (req, res) => {
     }
     
     const userCount = await prisma.user.count();
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, name: true, createdAt: true },
+      take: 5
+    });
     res.json({ 
       success: true, 
       userCount: userCount,
+      users: users,
       message: 'User table accessible'
     });
   } catch (error) {

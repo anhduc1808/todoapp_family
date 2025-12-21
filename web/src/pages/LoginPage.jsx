@@ -28,8 +28,18 @@ function LoginPage() {
     }
 
     try {
+      // Validate input
+      if (!username || !password) {
+        setError('Vui lòng nhập email và mật khẩu')
+        setLoading(false)
+        return
+      }
+
       // Backend chỉ nhận email, không nhận username
-      const loginData = { email: username, password }
+      const loginData = { email: username.trim(), password }
+      
+      console.log('Sending login request to:', api.defaults.baseURL + '/auth/login')
+      console.log('Login data:', { email: loginData.email, password: '***' })
       
       const res = await api.post('/auth/login', loginData)
       
@@ -45,7 +55,10 @@ function LoginPage() {
         setError('Invalid response from server')
       }
     } catch (err) {
-      setError(err.response?.data?.message || t('loginFailed') || 'Login failed')
+      console.error('Login error:', err)
+      console.error('Error response:', err.response?.data)
+      const errorMessage = err.response?.data?.message || err.message || t('loginFailed') || 'Đăng nhập thất bại'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
