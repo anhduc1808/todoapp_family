@@ -154,7 +154,26 @@ app.use('/api', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/translate', translationRoutes);
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  console.error('Error stack:', err.stack);
+  res.status(500).json({
+    message: 'Internal server error',
+    error: process.env.NODE_ENV !== 'production' ? err.message : undefined,
+    code: err.code || 'UNKNOWN_ERROR'
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`Backend server listening on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
+  console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? 'Set' : 'Not set'}`);
 });
