@@ -8,9 +8,17 @@ const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 function generateToken(user) {
-  return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: '7d',
-  });
+  if (!JWT_SECRET || JWT_SECRET === 'dev-secret') {
+    console.warn('WARNING: Using default JWT_SECRET. This is not secure for production!');
+  }
+  try {
+    return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
+  } catch (error) {
+    console.error('JWT token generation error:', error);
+    throw new Error('Failed to generate authentication token');
+  }
 }
 
 exports.register = async (req, res) => {
@@ -40,40 +48,52 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const prisma = req.prisma;
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
-
   try {
+    const prisma = req.prisma;
     if (!prisma) {
-      console.error('Prisma client is not available');
-      return res.status(500).json({ message: 'Database connection error' });
+      console.error('Prisma client is not available in request');
+      return res.status(500).json({ 
+        message: 'Database connection error',
+        error: 'Prisma client not initialized'
+      });
     }
+
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
+
+    console.log('Login attempt for email:', email);
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      console.log('User not found for email:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    console.log('User found, checking password...');
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) {
+      console.log('Password mismatch for email:', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    console.log('Login successful for user:', user.id);
     const token = generateToken(user);
     res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Login error:', err);
+    console.error('Error stack:', err.stack);
     console.error('Error details:', {
       message: err.message,
       code: err.code,
-      meta: err.meta
+      meta: err.meta,
+      name: err.name
     });
     res.status(500).json({ 
       message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      error: process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production' ? err.message : 'Internal server error',
+      code: err.code || 'UNKNOWN_ERROR'
     });
   }
 };
