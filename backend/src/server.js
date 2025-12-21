@@ -79,14 +79,71 @@ app.get('/api/health', async (req, res) => {
     res.json({ 
       status: 'ok', 
       message: 'Family TodoApp backend running',
-      database: 'connected'
+      database: 'connected',
+      prisma: 'initialized',
+      env: {
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        hasJwtSecret: !!process.env.JWT_SECRET,
+        nodeEnv: process.env.NODE_ENV
+      }
     });
   } catch (error) {
     console.error('Health check error:', error);
     res.status(500).json({ 
       status: 'error', 
       message: 'Database connection failed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: error.message,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+    });
+  }
+});
+
+// Test endpoint để kiểm tra Prisma
+app.get('/api/test/prisma', async (req, res) => {
+  try {
+    if (!prisma) {
+      return res.status(500).json({ error: 'Prisma client not initialized' });
+    }
+    
+    // Test simple query
+    const result = await prisma.$queryRaw`SELECT 1 as test`;
+    res.json({ 
+      success: true, 
+      prisma: 'working',
+      result: result 
+    });
+  } catch (error) {
+    console.error('Prisma test error:', error);
+    res.status(500).json({ 
+      error: 'Prisma test failed',
+      message: error.message,
+      code: error.code,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
+    });
+  }
+});
+
+// Test endpoint để kiểm tra User table
+app.get('/api/test/users', async (req, res) => {
+  try {
+    if (!prisma) {
+      return res.status(500).json({ error: 'Prisma client not initialized' });
+    }
+    
+    const userCount = await prisma.user.count();
+    res.json({ 
+      success: true, 
+      userCount: userCount,
+      message: 'User table accessible'
+    });
+  } catch (error) {
+    console.error('User table test error:', error);
+    res.status(500).json({ 
+      error: 'User table test failed',
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
     });
   }
 });

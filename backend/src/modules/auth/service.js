@@ -22,28 +22,52 @@ function generateToken(user) {
 }
 
 exports.register = async (req, res) => {
-  const prisma = req.prisma;
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
-  }
-
   try {
+    const prisma = req.prisma;
+    if (!prisma) {
+      console.error('Prisma client is not available in request');
+      return res.status(500).json({ 
+        message: 'Database connection error',
+        error: 'Prisma client not initialized'
+      });
+    }
+
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Missing fields' });
+    }
+
+    console.log('Register attempt for email:', email);
+
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
+      console.log('Email already exists:', email);
       return res.status(400).json({ message: 'Email already in use' });
     }
 
+    console.log('Creating new user...');
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { name, email, passwordHash },
     });
 
+    console.log('User created successfully:', user.id);
     const token = generateToken(user);
     res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Register error:', err);
+    console.error('Error stack:', err.stack);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      meta: err.meta,
+      name: err.name
+    });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production' ? err.message : 'Internal server error',
+      code: err.code || 'UNKNOWN_ERROR'
+    });
   }
 };
 
