@@ -28,9 +28,8 @@ function LoginPage() {
     }
 
     try {
-      const loginData = username.includes('@') 
-        ? { email: username, password }
-        : { username, password }
+      // Backend chỉ nhận email, không nhận username
+      const loginData = { email: username, password }
       
       const res = await api.post('/auth/login', loginData)
       
