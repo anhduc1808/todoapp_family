@@ -337,11 +337,11 @@ function FamilyTasksPage() {
           </div>
 
           <div className="rounded-xl border-2 border-slate-200 dark:border-slate-500 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-[#1F2937] dark:to-[#1F2937] px-5 py-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-100 mb-1 flex items-center gap-2">
-              <Icon name="chart" className="text-slate-600 dark:text-slate-100" size="sm" />
-              <span>{t('progressStats')}</span>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-100 mb-1 flex items-center gap-2 min-w-0">
+              <Icon name="chart" className="text-slate-600 dark:text-slate-100 flex-shrink-0" size="sm" />
+              <span className="whitespace-nowrap overflow-hidden text-ellipsis">{t('progressStats')}</span>
             </p>
-            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
+            <p className="text-sm font-semibold text-white mb-3 min-w-0 overflow-hidden text-ellipsis bg-slate-800 dark:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-600 dark:border-slate-500">
               {currentMemberName}
             </p>
             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -368,7 +368,7 @@ function FamilyTasksPage() {
                 style={{ width: `${stats.donePercent}%` }}
               />
             </div>
-            <p className="mt-2 text-xs font-medium text-slate-900 dark:text-slate-300 text-center">
+            <p className="mt-2 text-xs font-medium text-slate-700 dark:text-slate-200 text-center bg-white/30 dark:bg-slate-800/30 px-2 py-1 rounded">
               {stats.donePercent}% {t('tasksCompleted')}
             </p>
           </div>

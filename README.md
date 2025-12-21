@@ -188,7 +188,9 @@ Tạo file `.env` trong thư mục `web/`:
 # API Base URL
 VITE_API_BASE=https://family-todoapp-backend-production.up.railway.app/api
 
-# Frontend URL
+# Frontend URL (cho production, set trong Vercel Environment Variables)
+# Nếu không set, sẽ tự động dùng window.location.origin (domain thực tế khi deploy)
+# Ví dụ: VITE_FRONTEND_URL=https://your-app.vercel.app
 VITE_FRONTEND_URL=http://localhost:5173
 
 # Socket URL (optional)

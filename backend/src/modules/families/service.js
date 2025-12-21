@@ -14,7 +14,23 @@ exports.listFamilies = async (req, res) => {
   try {
     const memberships = await prisma.familyMember.findMany({
       where: { userId },
-      include: { family: true },
+      include: { 
+        family: {
+          include: {
+            members: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
     });
     const families = memberships.map((m) => m.family);
     res.json({ families });
@@ -102,20 +118,39 @@ exports.createInviteCode = async (req, res) => {
 };
 
 exports.joinFamilyByCode = async (req, res) => {
+  console.log('joinFamilyByCode called', { body: req.body, userId: req.user?.id });
   const prisma = req.prisma;
   const userId = req.user.id;
-  const { code } = req.body;
+  let { code } = req.body;
 
-  if (!code) return res.status(400).json({ message: 'Missing code' });
+  if (!code) {
+    console.log('Missing code');
+    return res.status(400).json({ message: 'Missing code' });
+  }
+
+  // Normalize code: trim và uppercase
+  code = code.trim().toUpperCase();
+  console.log('Normalized code:', code);
 
   try {
-    const family = await prisma.family.findFirst({ where: { inviteCode: code } });
-    if (!family) return res.status(404).json({ message: 'Invalid code' });
+    // Tìm family với inviteCode (exact match sau khi normalize)
+    const family = await prisma.family.findFirst({ 
+      where: { 
+        inviteCode: code
+      } 
+    });
+    if (!family) {
+      console.log('Family not found for code:', code);
+      return res.status(404).json({ message: 'Invalid code' });
+    }
 
     const existing = await prisma.familyMember.findFirst({
       where: { userId, familyId: family.id },
     });
-    if (existing) return res.status(200).json({ family });
+    if (existing) {
+      console.log('User already member of family');
+      return res.status(200).json({ family });
+    }
 
     await prisma.familyMember.create({
       data: {
@@ -125,9 +160,10 @@ exports.joinFamilyByCode = async (req, res) => {
       },
     });
 
+    console.log('User joined family successfully');
     res.status(201).json({ family });
   } catch (err) {
-    console.error(err);
+    console.error('Error in joinFamilyByCode:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };

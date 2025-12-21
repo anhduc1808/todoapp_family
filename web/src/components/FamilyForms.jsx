@@ -39,7 +39,7 @@ export function CreateFamilyForm({ onSuccess }) {
       }}
       className="space-y-2"
     >
-      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+      <label className="block text-sm font-bold text-white mb-2">
         {t('familyGroupName')}
       </label>
       <div className="flex flex-col sm:flex-row gap-2">
@@ -57,7 +57,7 @@ export function CreateFamilyForm({ onSuccess }) {
           {loading ? t('creating') : t('createGroup')}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500 dark:text-red-400 mt-2">{error}</p>}
+      {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
     </form>
   )
 }
@@ -73,7 +73,8 @@ export function JoinFamilyForm({ onSuccess }) {
     mutationFn: async () => {
       setLoading(true)
       setError('')
-      const res = await api.post('/families/join', { code })
+      console.log('Joining family with code:', code)
+      const res = await api.post('/families/join', { code: code.trim().toUpperCase() })
       return res.data
     },
     onSuccess: () => {
@@ -82,7 +83,26 @@ export function JoinFamilyForm({ onSuccess }) {
       if (onSuccess) onSuccess()
     },
     onError: (err) => {
-      setError(err.response?.data?.message || t('joinGroupFailed'))
+      console.error('Join family error:', err)
+      console.error('Error details:', {
+        status: err.response?.status,
+        message: err.response?.data?.message,
+        url: err.config?.url,
+        method: err.config?.method
+      })
+      if (err.response?.status === 404) {
+        // Kiểm tra xem có phải là "Invalid code" không
+        const errorMessage = err.response?.data?.message || ''
+        if (errorMessage === 'Invalid code' || errorMessage.includes('Invalid code')) {
+          setError(t('invalidInviteCode') || 'Mã mời không hợp lệ. Vui lòng kiểm tra lại mã mời.')
+        } else {
+          setError(t('routeNotFound') || 'Route not found. Backend may not be deployed with latest code.')
+        }
+      } else if (err.response?.status === 401) {
+        setError(t('unauthorized') || 'Please login first')
+      } else {
+        setError(err.response?.data?.message || t('joinGroupFailed') || 'Failed to join family')
+      }
     },
     onSettled: () => {
       setLoading(false)
@@ -98,8 +118,8 @@ export function JoinFamilyForm({ onSuccess }) {
       }}
       className="space-y-2"
     >
-      <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
-        {t('joinByLink') || 'Tham gia bằng link'}
+      <label className="block text-sm font-bold text-white mb-2">
+        {t('joinByCode') || 'Tham gia bằng mã code'}
       </label>
       <div className="flex flex-col sm:flex-row gap-2">
         <input
@@ -116,7 +136,7 @@ export function JoinFamilyForm({ onSuccess }) {
           {loading ? t('joining') : t('joinGroup')}
         </button>
       </div>
-      {error && <p className="text-xs text-red-500 dark:text-red-400 mt-2">{error}</p>}
+      {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
     </form>
   )
 }

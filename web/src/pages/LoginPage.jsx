@@ -48,9 +48,18 @@ function LoginPage() {
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
         }
-        setTimeout(() => {
-          navigate('/')
-        }, 100)
+        // Kiểm tra xem có redirect URL sau khi login không (ví dụ: join family link)
+        const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
+        if (redirectAfterLogin) {
+          localStorage.removeItem('redirectAfterLogin')
+          setTimeout(() => {
+            navigate(redirectAfterLogin)
+          }, 100)
+        } else {
+          setTimeout(() => {
+            navigate('/')
+          }, 100)
+        }
       } else {
         setError('Invalid response from server')
       }
@@ -219,7 +228,7 @@ function LoginPage() {
                   className="w-4 h-4 text-orange-500 border-slate-400 rounded focus:ring-orange-500 cursor-pointer"
                   style={{ accentColor: '#F4511E' }}
                 />
-                <label htmlFor="rememberMe" className="ml-2 text-sm text-slate-700 font-medium cursor-pointer">
+                <label htmlFor="rememberMe" className="ml-2 text-sm text-slate-900 font-semibold cursor-pointer">
                   {t('rememberMe') || 'Remember Me'}
                 </label>
               </div>

@@ -8,7 +8,6 @@ const translations = {
     dashboard: 'Dashboard',
     myTasks: 'My Task',
     settings: 'Settings',
-    help: 'Help',
     logout: 'Logout',
     home: 'Home',
     
@@ -59,6 +58,10 @@ const translations = {
     familyTasks: 'Family Tasks',
     inviteMember: 'Invite Member',
     inviteCode: 'Invitation Code',
+    createInviteCode: 'Create Invite Code',
+    noInviteCode: 'No invite code',
+    copied: 'Copied',
+    copy: 'Copy',
     
     // Settings
     changePassword: 'Change Password',
@@ -94,12 +97,17 @@ const translations = {
     calendar: 'Calendar',
     selectedDate: 'Selected Date',
     joinByLink: 'Join by Link',
+    joinByCode: 'Join by Code',
     familyGroupName: 'New family group name',
     familyGroupNameExample: 'Example: Nam\'s family',
     createGroup: 'Create Group',
     createGroupFailed: 'Failed to create group',
     joining: 'Joining...',
     joinGroupFailed: 'Failed to join group',
+    joinGroupSuccess: 'Successfully joined the family group!',
+    invalidInviteLink: 'Invalid invite link',
+    invalidInviteLinkDesc: 'The invite link does not contain a valid invite code.',
+    pleaseWait: 'Please wait...',
     inviteCodePlaceholder: 'INVITE CODE',
     
     // Dashboard
@@ -160,6 +168,8 @@ const translations = {
     createFailed: 'Create failed',
     inviteCodeCreated: 'Invite code created successfully!',
     inviteCodeFailed: 'Failed to create invite code',
+    inviteCodeCopied: 'Invite code copied!',
+    cannotCopyCode: 'Cannot copy invite code',
     
     // Login/Register Extended
     loginToStart: 'Login to start',
@@ -178,6 +188,9 @@ const translations = {
     roleUpdated: 'Role updated successfully!',
     roleUpdateFailed: 'Failed to update role',
     cannotCopyLink: 'Cannot copy link',
+    routeNotFound: 'Route not found. Backend may not be deployed with latest code.',
+    unauthorized: 'Unauthorized. Please login first.',
+    invalidInviteCode: 'Invalid invite code. Please check the code and try again.',
     
     // Roles
     owner: 'Owner',
@@ -260,7 +273,6 @@ const translations = {
     myTasks: 'Công việc của tôi',
     taskCategories: 'Danh mục công việc',
     settings: 'Cài đặt',
-    help: 'Trợ giúp',
     logout: 'Đăng xuất',
     home: 'Trang chủ',
     
@@ -311,6 +323,10 @@ const translations = {
     familyTasks: 'Công việc gia đình',
     inviteMember: 'Mời thành viên',
     inviteCode: 'Mã mời',
+    createInviteCode: 'Tạo mã mời',
+    noInviteCode: 'Chưa có mã',
+    copied: 'Đã copy',
+    copy: 'Copy',
     
     // Settings
     changePassword: 'Đổi mật khẩu',
@@ -389,6 +405,8 @@ const translations = {
     createSuccess: 'Tạo thành công!',
     createFailed: 'Tạo thất bại',
     inviteCodeCreated: 'Đã tạo mã mời thành công!',
+    inviteCodeCopied: 'Đã copy mã mời!',
+    cannotCopyCode: 'Không thể copy mã mời',
     inviteCodeFailed: 'Không tạo được mã mời',
     
     // Login/Register Extended
@@ -421,6 +439,9 @@ const translations = {
     roleUpdated: 'Đã cập nhật quyền thành công!',
     roleUpdateFailed: 'Cập nhật quyền thất bại',
     cannotCopyLink: 'Không thể copy link',
+    routeNotFound: 'Route không tìm thấy. Backend có thể chưa được deploy với code mới nhất.',
+    unauthorized: 'Chưa đăng nhập. Vui lòng đăng nhập trước.',
+    invalidInviteCode: 'Mã mời không hợp lệ. Vui lòng kiểm tra lại mã mời.',
     
     // Roles
     owner: 'Chủ nhóm',
@@ -497,12 +518,17 @@ const translations = {
     viewMemberProgress: 'Xem tiến độ công việc của từng thành viên',
     pleaseSelectMember: 'Vui lòng chọn thành viên để xem tiến độ.',
     joinByLink: 'Tham gia bằng link',
+    joinByCode: 'Tham gia bằng mã code',
     familyGroupName: 'Tên nhóm gia đình mới',
     familyGroupNameExample: 'Ví dụ: Gia đình nhà Nam',
     createGroup: 'Tạo nhóm',
     createGroupFailed: 'Tạo nhóm thất bại',
     joining: 'Đang tham gia...',
     joinGroupFailed: 'Tham gia nhóm thất bại',
+    joinGroupSuccess: 'Đã tham gia nhóm gia đình thành công!',
+    invalidInviteLink: 'Link mời không hợp lệ',
+    invalidInviteLinkDesc: 'Link mời không chứa mã mời hợp lệ.',
+    pleaseWait: 'Vui lòng đợi...',
     inviteCodePlaceholder: 'MÃ MỜI',
   },
 }

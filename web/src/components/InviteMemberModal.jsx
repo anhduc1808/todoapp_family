@@ -13,6 +13,7 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
   const [inviteCode, setInviteCode] = useState('')
   const [toast, setToast] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(false)
 
   const { data: familyData } = useQuery({
     queryKey: ['family', familyId],
@@ -36,17 +37,19 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
     },
     onSuccess: (data) => {
       setInviteCode(data.inviteCode)
+      queryClient.invalidateQueries({ queryKey: ['family', familyId] })
       setToast({ message: t('inviteCodeCreated'), type: 'success' })
     },
     onError: (err) => {
-      setToast({ message: err.response?.data?.message || 'Không tạo được mã mời', type: 'error' })
+      setToast({ message: err.response?.data?.message || t('inviteCodeFailed') || 'Không tạo được mã mời', type: 'error' })
     },
   })
 
   const sendInviteMutation = useMutation({
     mutationFn: async () => {
+      // Tự động dùng window.location.origin (domain thực tế khi deploy)
       const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
-    const link = `${frontendUrl}/join?code=${inviteCode}`
+      const link = `${frontendUrl}/join?code=${inviteCode}`
       await navigator.clipboard.writeText(link)
       return { success: true }
     },
@@ -94,6 +97,7 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
       await generateInviteMutation.mutateAsync()
     }
 
+    // Tự động dùng window.location.origin (domain thực tế khi deploy)
     const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
     const link = `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`
     try {
@@ -103,6 +107,25 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
       setToast({ message: t('cannotCopyLink'), type: 'error' })
+    }
+  }
+
+  const handleCopyCode = async () => {
+    if (!inviteCode) {
+      // Tạo invite code trước
+      await generateInviteMutation.mutateAsync()
+    }
+
+    const code = inviteCode || familyData?.family?.inviteCode
+    if (code) {
+      try {
+        await navigator.clipboard.writeText(code)
+        setCopiedCode(true)
+        setToast({ message: t('inviteCodeCopied') || 'Đã copy mã mời!', type: 'success' })
+        setTimeout(() => setCopiedCode(false), 2000)
+      } catch (err) {
+        setToast({ message: t('cannotCopyCode') || 'Không thể copy mã mời', type: 'error' })
+      }
     }
   }
 
@@ -123,6 +146,9 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
 
   if (!isOpen) return null
 
+  // Option 1: Tự động dùng window.location.origin (domain thực tế khi deploy)
+  // - Development: http://localhost:5173
+  // - Production: https://your-app.vercel.app (tự động từ Vercel)
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
   const projectLink = inviteCode || familyData?.family?.inviteCode
     ? `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`
@@ -224,6 +250,46 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
               </div>
             </div>
 
+            {/* Invite Code */}
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                {t('inviteCode')}
+              </h3>
+              {inviteCode || familyData?.family?.inviteCode ? (
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={inviteCode || familyData?.family?.inviteCode || ''}
+                    readOnly
+                    className="flex-1 rounded-lg border-2 border-slate-300 dark:border-slate-500 bg-[#25292D] dark:bg-[#25292D] px-4 py-3 text-sm font-mono font-bold uppercase tracking-wider dark-card-text"
+                  />
+                  <button
+                    onClick={handleCopyCode}
+                    className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition"
+                  >
+                    {copiedCode ? (t('copied') || 'Đã copy') : (t('copy') || 'Copy')}
+                  </button>
+                  <button
+                    onClick={() => generateInviteMutation.mutate()}
+                    disabled={generateInviteMutation.isPending}
+                    className="px-6 py-3 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+                  >
+                    {generateInviteMutation.isPending ? t('creating') : t('createInviteCode')}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => generateInviteMutation.mutate()}
+                    disabled={generateInviteMutation.isPending}
+                    className="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60"
+                  >
+                    {generateInviteMutation.isPending ? t('creating') : t('createInviteCode')}
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Project Link */}
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
@@ -243,15 +309,6 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
                   {copied ? t('linkCopied') : t('copyLink')}
                 </button>
               </div>
-              {!projectLink && (
-                <button
-                  onClick={() => generateInviteMutation.mutate()}
-                  disabled={generateInviteMutation.isPending}
-                  className="mt-2 text-sm text-orange-600 dark:text-orange-400 hover:underline"
-                >
-                  {generateInviteMutation.isPending ? t('creating') : t('inviteCode')}
-                </button>
-              )}
             </div>
           </div>
         </div>

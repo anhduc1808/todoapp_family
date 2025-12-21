@@ -159,6 +159,14 @@ app.use('/api', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/translate', translationRoutes);
 
+// Debug: Log all registered routes
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Registered routes:');
+  console.log('  POST /api/families/join');
+  console.log('  GET /api/families/:id');
+  console.log('  POST /api/families/:id/invite');
+}
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -172,7 +180,16 @@ app.use((err, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  console.log('404 - Route not found:', req.method, req.path);
+  console.log('Available routes:');
+  console.log('  POST /api/families/join');
+  console.log('  GET /api/families/:id');
+  res.status(404).json({ 
+    message: 'Route not found',
+    method: req.method,
+    path: req.path,
+    availableRoutes: ['POST /api/families/join', 'GET /api/families/:id']
+  });
 });
 
 const PORT = process.env.PORT || 4000;

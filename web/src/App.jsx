@@ -6,6 +6,7 @@ import { ThemeProvider } from './theme/ThemeContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import JoinPage from './pages/JoinPage'
 import DashboardPage from './pages/DashboardPage'
 import FamilyTasksPage from './pages/FamilyTasksPage'
 import TaskDetailPage from './pages/TaskDetailPage'
@@ -39,6 +40,10 @@ function App() {
               <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/join"
+              element={<JoinPage />}
+            />
             <Route
               path="/"
               element={
