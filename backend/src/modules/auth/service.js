@@ -47,6 +47,11 @@ exports.login = async (req, res) => {
   }
 
   try {
+    if (!prisma) {
+      console.error('Prisma client is not available');
+      return res.status(500).json({ message: 'Database connection error' });
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
@@ -60,8 +65,16 @@ exports.login = async (req, res) => {
     const token = generateToken(user);
     res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login error:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      meta: err.meta
+    });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 

@@ -36,15 +36,47 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Attach Prisma and io to request
-const prisma = new PrismaClient();
+let prisma;
+try {
+  prisma = new PrismaClient();
+  console.log('Prisma Client initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize Prisma Client:', error);
+  process.exit(1);
+}
+
+// Test database connection
+prisma.$connect()
+  .then(() => {
+    console.log('Database connected successfully');
+  })
+  .catch((error) => {
+    console.error('Database connection failed:', error);
+  });
+
 app.use((req, res, next) => {
   req.prisma = prisma;
   req.io = io;
   next();
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Family TodoApp backend running' });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ 
+      status: 'ok', 
+      message: 'Family TodoApp backend running',
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 });
 
 app.use('/api/auth', authRoutes);
