@@ -3,7 +3,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const { Server } = require('socket.io');
-const { PrismaClient } = require('../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const authRoutes = require('./modules/auth/routes');
 const familyRoutes = require('./modules/families/routes');
 const taskRoutes = require('./modules/tasks/routes');
@@ -38,10 +38,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Attach Prisma and io to request
 let prisma;
 try {
-  prisma = new PrismaClient();
-  console.log('Prisma Client initialized successfully');
+  // Check if Prisma Client exists
+  try {
+    prisma = new PrismaClient();
+    console.log('Prisma Client initialized successfully');
+  } catch (prismaError) {
+    console.error('Prisma Client initialization error:', prismaError);
+    console.error('Error details:', {
+      message: prismaError.message,
+      code: prismaError.code,
+      path: prismaError.path
+    });
+    throw prismaError;
+  }
 } catch (error) {
   console.error('Failed to initialize Prisma Client:', error);
+  console.error('Make sure Prisma Client is generated. Run: npx prisma generate');
   process.exit(1);
 }
 
