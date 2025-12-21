@@ -13,9 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: DATABASE_URL
-        fromDatabase:
-          name: family-todoapp-db
-          property: connectionString
+        value: postgresql://postgres:bvDsOTWFxyIXWuPBvJHmYhutljXTISfn@family-todoapp-db.railway.internal:5432/railway
       - key: JWT_SECRET
         generateValue: true
       - key: FACEBOOK_APP_ID

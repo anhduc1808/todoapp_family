@@ -163,7 +163,7 @@ Tạo file `.env` trong thư mục `backend/`:
 
 ```env
 # Database
-DATABASE_URL="postgresql://user:password@localhost:5432/family_todoapp"
+DATABASE_URL="postgresql://postgres:bvDsOTWFxyIXWuPBvJHmYhutljXTISfn@family-todoapp-db.railway.internal:5432/railway"
 
 # JWT
 JWT_SECRET="your-secret-key-here"
