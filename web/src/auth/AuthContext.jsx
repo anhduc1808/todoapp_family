@@ -20,10 +20,8 @@ export function AuthProvider({ children }) {
             headers: { Authorization: `Bearer ${token}` },
           })
           .then((res) => {
-            // Lưu user data từ backend (có name từ database)
             const userData = res.data.user || {}
             console.log('Loaded user from /auth/me:', userData)
-            // Không fallback về email ở đây, để UI xử lý fallback nếu cần
             setUser(userData)
             setIsLoading(false)
           })
@@ -45,7 +43,6 @@ export function AuthProvider({ children }) {
       return
     }
     console.log('Setting token and user:', { token: data.token, user: data.user })
-    // Set user trước để tránh race condition với useEffect
     const userData = {
       id: data.user.id,
       name: data.user.name || data.user.email?.split('@')[0] || 'User',
@@ -53,7 +50,6 @@ export function AuthProvider({ children }) {
     }
     console.log('Setting user data:', userData)
     setUser(userData)
-    // Sau đó mới set token để useEffect không override user
     setToken(data.token)
     localStorage.setItem('token', data.token)
     setIsLoading(false)
@@ -71,7 +67,6 @@ export function AuthProvider({ children }) {
         const res = await axios.get(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        // Lưu user data trực tiếp từ backend (có name từ database)
         const userData = res.data.user || {}
         setUser(userData)
         return userData
@@ -96,7 +91,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  // Trả về object mặc định nếu context chưa sẵn sàng
   if (!context) {
     return {
       user: null,

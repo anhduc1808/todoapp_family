@@ -97,41 +97,42 @@ function MemberProgressPage() {
         {/* Thông tin thành viên và thống kê */}
         <div className="grid gap-4 md:grid-cols-3">
           {/* Card thông tin thành viên */}
-          <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-800 to-slate-700 dark:from-slate-800 dark:to-slate-700 px-5 py-4 shadow-sm">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1F2937] px-5 py-4 shadow-sm">
             <div className="flex items-center gap-3 mb-3">
               <div className="h-12 w-12 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
                 {member.user.name?.[0]?.toUpperCase() || 'U'}
               </div>
               <div>
-                <div className="font-semibold dark-card-text">{member.user.name}</div>
-                <div className="text-xs font-medium dark-card-text">{member.role}</div>
+                <div className="font-semibold text-slate-900 dark:text-slate-100">{member.user.name}</div>
+                <div className="text-xs font-medium text-slate-600 dark:text-slate-300">{member.role}</div>
               </div>
             </div>
-            <div className="text-xs font-medium dark-card-text">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-200">
               {member.user.email}
             </div>
           </div>
 
           {/* Card phần trăm hoàn thành */}
-          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-500 bg-gradient-to-br from-[#1F2937] to-[#1F2937] dark:from-[#1F2937] dark:to-[#1F2937] px-5 py-4 shadow-sm">
-            <div className="text-xs mb-2 font-bold dark-card-text">Tỷ lệ hoàn thành</div>
-            <div className="text-3xl font-bold mb-2 dark-card-text">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1F2937] px-5 py-4 shadow-sm">
+            <div className="text-xs mb-2 font-bold text-slate-800 dark:text-slate-100">Tỷ lệ hoàn thành</div>
+            <div className="text-3xl font-bold mb-2 text-slate-900 dark:text-slate-100">
               {stats.donePercent}%
             </div>
-            <div className="h-3 w-full rounded-full bg-slate-200 overflow-hidden shadow-inner">
+            {/* Thanh tiến độ */}
+            <div className="h-4 w-full rounded-full bg-slate-200 dark:bg-slate-700/60 overflow-hidden shadow-inner border border-slate-300/70 dark:border-slate-600/80">
               <div
-                className="h-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500 shadow-sm"
+                className="h-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 rounded-full transition-all duration-500 shadow-md"
                 style={{ width: `${stats.donePercent}%` }}
               />
             </div>
           </div>
 
           {/* Card tổng quan */}
-          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] px-5 py-4 shadow-sm">
-            <div className="text-xs text-slate-900 dark:text-slate-200 mb-3 font-medium">{t('overview')}</div>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1F2937] px-5 py-4 shadow-sm">
+            <div className="text-xs text-slate-800 dark:text-slate-100 mb-3 font-medium">{t('overview')}</div>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-900 dark:text-slate-300">{t('totalTasks')}</span>
+                <span className="text-sm text-slate-800 dark:text-slate-200">{t('totalTasks')}</span>
                 <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.total}</span>
               </div>
               <div className="flex justify-between items-center">
@@ -143,8 +144,8 @@ function MemberProgressPage() {
                 <span className="font-semibold text-amber-600 dark:text-amber-400">{stats['in-progress']}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-900 dark:text-slate-300">{t('notStarted')}</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-200">{stats.todo}</span>
+                <span className="text-sm text-slate-800 dark:text-slate-200">{t('notStarted')}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{stats.todo}</span>
               </div>
             </div>
           </div>

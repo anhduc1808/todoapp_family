@@ -14,9 +14,11 @@ function MyTasksPage() {
   const { user } = useAuth()
   const { t } = useLanguage()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [toast, setToast] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [timeFilter, setTimeFilter] = useState('today') // today, week, month, all
+  // Mặc định hiển thị tất cả để không bị ẩn công việc mới tạo
+  const [timeFilter, setTimeFilter] = useState('all') // today, week, month, all
   const [openAddTaskModal, setOpenAddTaskModal] = useState(false)
   const [selectedFamilyId, setSelectedFamilyId] = useState(null)
 
@@ -41,6 +43,40 @@ function MyTasksPage() {
   
   // Tự động chọn family đầu tiên nếu chỉ có 1 family
   const defaultFamilyId = families.length === 1 ? families[0].id : null
+
+  const createPersonalFamilyMutation = useMutation({
+    mutationFn: async () => {
+      const name =
+        (user?.name ? `Công việc cá nhân của ${user.name}` : 'Công việc cá nhân') +
+        ' (Personal)'
+      const res = await api.post('/families', { name })
+      return res.data
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['myFamilies'] })
+      const newFamilyId = data?.family?.id
+      if (newFamilyId) {
+        setSelectedFamilyId(newFamilyId)
+        setOpenAddTaskModal(true)
+        setToast({
+          message:
+            t('personalFamilyCreated') ||
+            'Đã tạo nhóm công việc cá nhân cho bạn. Bạn có thể thêm công việc ngay bây giờ.',
+          type: 'success',
+        })
+      }
+    },
+    onError: (err) => {
+      console.error('Error creating personal family:', err)
+      setToast({
+        message:
+          err.response?.data?.message ||
+          t('personalFamilyCreateFailed') ||
+          'Không thể tạo nhóm công việc cá nhân. Vui lòng thử lại.',
+        type: 'error',
+      })
+    },
+  })
   
   // Lấy members của family được chọn (sử dụng selectedFamilyId hoặc defaultFamilyId)
   const familyIdToQuery = selectedFamilyId || defaultFamilyId
@@ -77,7 +113,8 @@ function MyTasksPage() {
       now.setHours(0, 0, 0, 0)
 
       filtered = filtered.filter((t) => {
-        if (!t.dueDate) return false
+        // Công việc không có deadline vẫn được hiển thị ở mọi chế độ lọc
+        if (!t.dueDate) return true
 
         const dueDate = new Date(t.dueDate)
         dueDate.setHours(0, 0, 0, 0)
@@ -297,9 +334,12 @@ function MyTasksPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (families.length === 0) {
-                        setToast({ message: 'Bạn chưa tham gia gia đình nào. Vui lòng tạo hoặc tham gia gia đình trước.', type: 'error' })
+                        // Không bắt user phải tự tạo gia đình nữa.
+                        // Tự động tạo một nhóm "Công việc cá nhân" cho riêng user hiện tại.
+                        if (createPersonalFamilyMutation.isPending) return
+                        await createPersonalFamilyMutation.mutateAsync()
                         return
                       }
                       // Chọn family (mặc định hoặc đầu tiên) và tự động assign cho chính user
@@ -387,6 +427,12 @@ function MyTasksPage() {
                                   {t('createdDateLabel')} {formatDate(task.createdAt)}
                                 </span>
                               )}
+                              {task.family?.name && (
+                                <span className="px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-500 text-[11px] font-medium whitespace-nowrap inline-flex items-center gap-1">
+                                  <span>{t('family')}:</span>
+                                  <span className="font-semibold">{task.family.name}</span>
+                                </span>
+                              )}
                             </div>
                             {task.dueDate && (
                               <div className="text-xs text-slate-500 dark:text-slate-300">
@@ -471,6 +517,11 @@ function MyTasksPage() {
                             <p className="text-xs text-green-600 dark:text-green-400 font-medium">
                               {t('statusLabel')} {t('completed')}
                             </p>
+                            {task.family?.name && (
+                              <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-300">
+                                {t('family')}: {task.family.name}
+                              </p>
+                            )}
                             {task.updatedAt && (
                               <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">
                                 {t('completed')} {formatDate(task.updatedAt)}

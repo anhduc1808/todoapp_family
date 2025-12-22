@@ -379,14 +379,14 @@ function TaskDetailPage() {
         </form>
 
         {/* Placeholder cho timeline & bình luận sau này */}
-        <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-500 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#1F2937] dark:to-[#1F2937] px-6 py-8 text-center">
+        <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1F2937] px-6 py-8 text-center shadow-sm">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center">
-              <Icon name="chart" className="text-slate-700 dark:text-slate-300" size="xl" />
+            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-slate-600 dark:to-slate-500 flex items-center justify-center">
+              <Icon name="chart" className="text-slate-700 dark:text-white" size="xl" />
             </div>
             <div>
               <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Tính năng sắp ra mắt</p>
-              <p className="text-sm text-slate-900 dark:text-slate-300 max-w-md">
+              <p className="text-sm text-slate-700 dark:text-slate-300 max-w-md">
                 Timeline tiến độ, biểu đồ và bình luận sẽ được hiển thị chi tiết hơn trong giai đoạn sau.
               </p>
             </div>
