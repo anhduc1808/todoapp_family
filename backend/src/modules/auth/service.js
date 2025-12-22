@@ -242,27 +242,29 @@ exports.facebookLogin = async (req, res) => {
   }
 
   try {
-    // Verify Facebook token
     const fbResponse = await axios.get(
-      `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
+      `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`,
+      { timeout: 10000 }
     );
+
+    if (!fbResponse.data) {
+      return res.status(400).json({ message: 'Invalid Facebook response' });
+    }
 
     const { id: facebookId, name, email } = fbResponse.data;
 
     if (!email) {
-      return res.status(400).json({ message: 'Email is required from Facebook' });
+      return res.status(400).json({ message: 'Email is required from Facebook. Please grant email permission.' });
     }
 
-    // Tìm user theo email hoặc tạo mới
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      // Tạo user mới với passwordHash rỗng (social login)
       user = await prisma.user.create({
         data: {
           name: name || 'Facebook User',
           email,
-          passwordHash: '', // Social login không cần password
+          passwordHash: '',
         },
       });
     }
@@ -271,10 +273,13 @@ exports.facebookLogin = async (req, res) => {
     res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Facebook login error:', err);
-    if (err.response?.data) {
-      return res.status(400).json({ message: 'Invalid Facebook token' });
+    if (err.response?.status === 401 || err.response?.status === 400) {
+      return res.status(400).json({ message: 'Invalid or expired Facebook token. Please try again.' });
     }
-    res.status(500).json({ message: 'Server error' });
+    if (err.code === 'ECONNABORTED') {
+      return res.status(408).json({ message: 'Facebook API timeout. Please try again.' });
+    }
+    res.status(500).json({ message: 'Server error during Facebook login' });
   }
 };
 
@@ -290,29 +295,39 @@ exports.googleLogin = async (req, res) => {
   try {
     let googleUserInfo = { email, name };
 
-    // Nếu có idToken, verify với Google
     if (idToken) {
       try {
-        const googleResponse = await axios.get(
-          `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
-        );
-        googleUserInfo = {
-          email: googleResponse.data.email,
-          name: googleResponse.data.name,
-        };
-      } catch (tokenErr) {
-        // Nếu idToken không hợp lệ, thử dùng như access token
-        try {
-          const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${idToken}` }
-          });
+        const userInfoRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${idToken}` },
+          timeout: 10000
+        });
+        
+        if (userInfoRes.data) {
           googleUserInfo = {
             email: userInfoRes.data.email,
-            name: userInfoRes.data.name,
+            name: userInfoRes.data.name || userInfoRes.data.given_name || name,
           };
-        } catch (accessTokenErr) {
-          console.error('Google token verification failed:', accessTokenErr);
-          return res.status(400).json({ message: 'Invalid Google token' });
+        }
+      } catch (accessTokenErr) {
+        try {
+          const googleResponse = await axios.get(
+            `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`,
+            { timeout: 10000 }
+          );
+          
+          if (googleResponse.data) {
+            googleUserInfo = {
+              email: googleResponse.data.email,
+              name: googleResponse.data.name || name,
+            };
+          }
+        } catch (tokenErr) {
+          console.error('Google token verification failed:', tokenErr);
+          if (email && name) {
+            googleUserInfo = { email, name };
+          } else {
+            return res.status(400).json({ message: 'Invalid Google token. Please try again.' });
+          }
         }
       }
     }
@@ -321,16 +336,14 @@ exports.googleLogin = async (req, res) => {
       return res.status(400).json({ message: 'Email is required from Google' });
     }
 
-    // Tìm user theo email hoặc tạo mới
     let user = await prisma.user.findUnique({ where: { email: googleUserInfo.email } });
 
     if (!user) {
-      // Tạo user mới với passwordHash rỗng (social login)
       user = await prisma.user.create({
         data: {
           name: googleUserInfo.name || 'Google User',
           email: googleUserInfo.email,
-          passwordHash: '', // Social login không cần password
+          passwordHash: '',
         },
       });
     }
@@ -339,9 +352,12 @@ exports.googleLogin = async (req, res) => {
     res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (err) {
     console.error('Google login error:', err);
-    if (err.response?.data) {
-      return res.status(400).json({ message: 'Invalid Google token' });
+    if (err.response?.status === 401 || err.response?.status === 400) {
+      return res.status(400).json({ message: 'Invalid or expired Google token. Please try again.' });
     }
-    res.status(500).json({ message: 'Server error' });
+    if (err.code === 'ECONNABORTED') {
+      return res.status(408).json({ message: 'Google API timeout. Please try again.' });
+    }
+    res.status(500).json({ message: 'Server error during Google login' });
   }
 };
