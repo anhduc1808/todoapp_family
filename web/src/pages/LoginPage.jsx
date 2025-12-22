@@ -85,47 +85,74 @@ function LoginPage() {
         return
       }
 
-      if (!window.FB) {
+      if (typeof window === 'undefined' || !window.FB) {
         setError('Facebook SDK đang tải. Vui lòng đợi và thử lại.')
         setLoading(false)
         return
       }
 
-      window.FB.login(async (response) => {
+      if (typeof window.FB.login !== 'function') {
+        setError('Facebook SDK chưa sẵn sàng. Vui lòng refresh trang và thử lại.')
         setLoading(false)
-        if (response.authResponse) {
-          const accessToken = response.authResponse.accessToken
-          
-          try {
-            setLoading(true)
-            const res = await api.post('/auth/facebook', { accessToken })
-            if (res.data && res.data.token && res.data.user) {
-              login(res.data)
-              setTimeout(() => {
-                const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
-                if (redirectAfterLogin) {
-                  localStorage.removeItem('redirectAfterLogin')
-                  navigate(redirectAfterLogin)
-                } else {
-                  navigate('/')
-                }
-              }, 200)
-            } else {
-              setError('Phản hồi không hợp lệ từ server')
+        return
+      }
+
+      try {
+        window.FB.login((response) => {
+          setLoading(false)
+          if (response.authResponse) {
+            const accessToken = response.authResponse.accessToken
+            
+            if (!accessToken) {
+              setError('Không thể lấy access token từ Facebook')
+              return
             }
-          } catch (err) {
-            console.error('Facebook login API error:', err)
-            setError(err.response?.data?.message || 'Đăng nhập Facebook thất bại')
-          } finally {
-            setLoading(false)
+
+            setLoading(true)
+            api.post('/auth/facebook', { accessToken })
+              .then((res) => {
+                if (res.data && res.data.token && res.data.user) {
+                  if (login && typeof login === 'function') {
+                    login(res.data)
+                    setTimeout(() => {
+                      const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
+                      if (redirectAfterLogin) {
+                        localStorage.removeItem('redirectAfterLogin')
+                        navigate(redirectAfterLogin)
+                      } else {
+                        navigate('/')
+                      }
+                    }, 200)
+                  } else {
+                    setError('Login function không khả dụng')
+                  }
+                } else {
+                  setError('Phản hồi không hợp lệ từ server')
+                }
+              })
+              .catch((err) => {
+                console.error('Facebook login API error:', err)
+                setError(err.response?.data?.message || 'Đăng nhập Facebook thất bại')
+              })
+              .finally(() => {
+                setLoading(false)
+              })
+          } else {
+            if (response.status === 'not_authorized') {
+              setError('Bạn đã từ chối quyền truy cập Facebook')
+            } else {
+              setError('Đăng nhập Facebook bị hủy hoặc thất bại')
+            }
           }
-        } else {
-          setError('Đăng nhập Facebook bị hủy hoặc thất bại')
-        }
-      }, { scope: 'email,public_profile' })
+        }, { scope: 'email,public_profile' })
+      } catch (fbErr) {
+        console.error('Facebook SDK error:', fbErr)
+        setError('Lỗi khi gọi Facebook SDK: ' + (fbErr.message || 'Unknown error'))
+        setLoading(false)
+      }
     } catch (err) {
       console.error('Facebook login error:', err)
-      setError('Lỗi khi đăng nhập Facebook')
+      setError('Lỗi khi đăng nhập Facebook: ' + (err.message || 'Unknown error'))
       setLoading(false)
     }
   }
@@ -198,36 +225,78 @@ function LoginPage() {
     document.body.style.backgroundColor = '#fff7ed'
     document.body.style.color = '#0f172a'
     
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    const userParam = urlParams.get('user')
+    const error = urlParams.get('error')
+
+    if (error) {
+      setError(decodeURIComponent(error))
+      window.history.replaceState({}, '', '/login')
+    } else if (token && userParam && login) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userParam))
+        login({ token, user })
+        setTimeout(() => {
+          const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
+          if (redirectAfterLogin) {
+            localStorage.removeItem('redirectAfterLogin')
+            navigate(redirectAfterLogin)
+          } else {
+            navigate('/')
+          }
+        }, 200)
+        window.history.replaceState({}, '', '/login')
+      } catch (err) {
+        console.error('Error parsing callback data:', err)
+        setError('Lỗi khi xử lý thông tin đăng nhập')
+      }
+    }
+    
     const initFacebookSDK = () => {
-      if (window.FB) {
+      if (typeof window !== 'undefined' && window.FB) {
         const fbAppId = import.meta.env.VITE_FACEBOOK_APP_ID
-        if (fbAppId && !window.FB._initialized) {
+        if (fbAppId) {
           try {
-            window.FB.init({
-              appId: fbAppId,
-              cookie: true,
-              xfbml: true,
-              version: 'v18.0'
-            })
-            window.FB._initialized = true
-            console.log('Facebook SDK initialized')
+            if (!window.FB._initialized) {
+              window.FB.init({
+                appId: fbAppId,
+                cookie: true,
+                xfbml: true,
+                version: 'v18.0'
+              })
+              window.FB._initialized = true
+              console.log('Facebook SDK initialized with App ID:', fbAppId)
+            }
           } catch (err) {
             console.error('Error initializing Facebook SDK:', err)
           }
+        } else {
+          console.warn('Facebook App ID not found in environment variables')
         }
       } else {
-        setTimeout(initFacebookSDK, 100)
+        const maxAttempts = 50
+        let attempts = 0
+        const checkSDK = setInterval(() => {
+          attempts++
+          if (typeof window !== 'undefined' && window.FB) {
+            clearInterval(checkSDK)
+            initFacebookSDK()
+          } else if (attempts >= maxAttempts) {
+            clearInterval(checkSDK)
+            console.error('Facebook SDK failed to load after', maxAttempts * 100, 'ms')
+          }
+        }, 100)
       }
     }
 
-    if (window.fbAsyncInit) {
+    if (typeof window !== 'undefined') {
       window.fbAsyncInit = function() {
         initFacebookSDK()
       }
+      initFacebookSDK()
     }
-
-    initFacebookSDK()
-  }, [])
+  }, [login, navigate])
 
   return (
     <div className="min-h-screen bg-red-50 flex items-center justify-center px-4 py-8" style={{ backgroundColor: '#fef2f2' }}>

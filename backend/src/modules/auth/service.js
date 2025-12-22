@@ -232,7 +232,92 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// Facebook login
+exports.facebookCallback = async (req, res) => {
+  const prisma = req.prisma;
+  const { code, error } = req.query;
+
+  if (error) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=${encodeURIComponent(error)}`);
+  }
+
+  if (!code) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=missing_code`);
+  }
+
+  try {
+    const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+    const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
+    const redirectUri = `${process.env.BACKEND_URL || 'https://family-todoapp-backend-production.up.railway.app'}/api/auth/facebook/callback`;
+
+    if (!FACEBOOK_APP_ID || !FACEBOOK_APP_SECRET) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=facebook_not_configured`);
+    }
+
+    const tokenResponse = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+      params: {
+        client_id: FACEBOOK_APP_ID,
+        client_secret: FACEBOOK_APP_SECRET,
+        redirect_uri: redirectUri,
+        code: code,
+      },
+      timeout: 10000
+    });
+
+    if (!tokenResponse.data || !tokenResponse.data.access_token) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=token_exchange_failed`);
+    }
+
+    const accessToken = tokenResponse.data.access_token;
+
+    const fbResponse = await axios.get(
+      `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`,
+      { timeout: 10000 }
+    );
+
+    if (!fbResponse.data) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=invalid_facebook_response`);
+    }
+
+    const { id: facebookId, name, email } = fbResponse.data;
+
+    if (!email) {
+      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=email_required`);
+    }
+
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: name || 'Facebook User',
+          email,
+          passwordHash: '',
+        },
+      });
+    }
+
+    const token = generateToken(user);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    return res.redirect(`${frontendUrl}/login?token=${token}&user=${encodeURIComponent(JSON.stringify({ id: user.id, name: user.name, email: user.email }))}`);
+  } catch (err) {
+    console.error('Facebook callback error:', err);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('facebook_callback_error')}`);
+  }
+};
+
+exports.facebookAuth = async (req, res) => {
+  const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+  const redirectUri = `${process.env.BACKEND_URL || 'https://family-todoapp-backend-production.up.railway.app'}/api/auth/facebook/callback`;
+  
+  if (!FACEBOOK_APP_ID) {
+    return res.status(500).json({ message: 'Facebook App ID not configured' });
+  }
+
+  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=email,public_profile&response_type=code`;
+  res.redirect(authUrl);
+};
+
 exports.facebookLogin = async (req, res) => {
   const prisma = req.prisma;
   const { accessToken } = req.body;
