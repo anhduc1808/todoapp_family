@@ -155,10 +155,10 @@ html[data-theme="dark"] [class*="from-[#1F2937]"] [class*="dark:text-white"] {
 }
 
 /* Force white text in InviteMemberModal dark cards */
-html.dark .dark\:bg-\[#25292D\] [class*="dark:text-white"],
-html.dark .dark\:bg-\[#25292D\] [class*="dark:text-slate-100"],
-html[data-theme="dark"] .dark\:bg-\[#25292D\] [class*="dark:text-white"],
-html[data-theme="dark"] .dark\:bg-\[#25292D\] [class*="dark:text-slate-100"] {
+html.dark [class*="dark:bg-[#25292D]"] [class*="dark:text-white"],
+html.dark [class*="dark:bg-[#25292D]"] [class*="dark:text-slate-100"],
+html[data-theme="dark"] [class*="dark:bg-[#25292D]"] [class*="dark:text-white"],
+html[data-theme="dark"] [class*="dark:bg-[#25292D]"] [class*="dark:text-slate-100"] {
   color: #FFFFFF !important;
 }
 
