@@ -181,7 +181,7 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                       placeholder="Tìm kiếm công việc của bạn..."
                       value={searchValue}
                       onChange={(e) => onSearchChange?.(e.target.value)}
-                      className="w-full pl-4 pr-12 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full pl-4 pr-12 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#25292D] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
                     <button className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
