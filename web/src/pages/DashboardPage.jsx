@@ -166,47 +166,30 @@ function DashboardPage() {
                 { bg: 'from-orange-400 to-orange-600', hover: 'hover:from-orange-500 hover:to-orange-700' },
               ]
               const color = colors[index % colors.length]
-              const currentUserMember = family.members?.find((m) => m.user.id === user?.id)
-              const isOwner = currentUserMember?.role === 'owner'
-              const isAdmin = currentUserMember?.role === 'admin'
-              const canCreateCode = isOwner || isAdmin
-              
               return (
-                <div
+                <Link
                   key={family.id}
+                  to={`/families/${family.id}/tasks`}
                   className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${color.bg} ${color.hover} p-5 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
                 >
-                  <Link
-                    to={`/families/${family.id}/tasks`}
-                    className="block"
-                  >
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-md">
-                          <Icon name="home" className="text-white" size="lg" />
-                        </div>
-                        <div className="h-6 w-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                          <Icon name="arrowRight" className="text-white" size="sm" />
-                        </div>
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="h-12 w-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-md">
+                        <Icon name="home" className="text-white" size="lg" />
                       </div>
-                      <h3 className="text-lg font-bold text-white mb-1 group-hover:scale-105 transition-transform">
-                        {family.name}
-                      </h3>
-                      <p className="text-xs text-white/80 mb-3">
-                        {t('clickToViewTasks')}
-                      </p>
+                      <div className="h-6 w-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <Icon name="arrowRight" className="text-white" size="sm" />
+                      </div>
                     </div>
-                  </Link>
-                  
-                  {/* Mã mời code */}
-                  {canCreateCode && (
-                    <div className="relative z-10 mt-3 pt-3 border-t border-white/20">
-                      <FamilyInviteCode familyId={family.id} currentCode={family.inviteCode} />
-                    </div>
-                  )}
-                  
+                    <h3 className="text-lg font-bold text-white mb-1 group-hover:scale-105 transition-transform">
+                      {family.name}
+                    </h3>
+                    <p className="text-xs text-white/80">
+                      {t('clickToViewTasks')}
+                    </p>
+                  </div>
                   <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                </div>
+                </Link>
               )
             })}
           </div>
@@ -291,97 +274,6 @@ function DashboardPage() {
         />
       )}
     </AppLayout>
-  )
-}
-
-// Component để hiển thị và tạo mã mời
-function FamilyInviteCode({ familyId, currentCode }) {
-  const { t } = useLanguage()
-  const queryClient = useQueryClient()
-  const [code, setCode] = useState(currentCode || '')
-  const [copied, setCopied] = useState(false)
-  const [loading, setLoading] = useState(false)
-
-  // Update code khi currentCode thay đổi
-  useEffect(() => {
-    if (currentCode) {
-      setCode(currentCode)
-    }
-  }, [currentCode])
-
-  const generateCodeMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post(`/families/${familyId}/invite`)
-      return res.data
-    },
-    onSuccess: (data) => {
-      setCode(data.inviteCode)
-      setLoading(false)
-      queryClient.invalidateQueries({ queryKey: ['families'] })
-    },
-    onError: (err) => {
-      console.error('Error generating invite code:', err)
-      setLoading(false)
-    },
-  })
-
-  const handleCopyCode = async () => {
-    if (!code) {
-      // Tạo code trước nếu chưa có
-      setLoading(true)
-      await generateCodeMutation.mutateAsync()
-    }
-    
-    if (code) {
-      try {
-        await navigator.clipboard.writeText(code)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      } catch (err) {
-        console.error('Error copying code:', err)
-      }
-    }
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-white/90 font-medium">{t('inviteCode') || 'Mã mời'}:</span>
-        {code ? (
-          <span className="text-xs font-mono font-bold text-white bg-white/20 px-2 py-1 rounded">
-            {code}
-          </span>
-        ) : (
-          <span className="text-xs text-white/70 italic">{t('noInviteCode') || 'Chưa có mã'}</span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setLoading(true)
-            generateCodeMutation.mutate()
-          }}
-          disabled={loading || generateCodeMutation.isPending}
-          className="flex-1 px-2 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded transition disabled:opacity-60"
-        >
-          {loading || generateCodeMutation.isPending ? t('creating') || 'Đang tạo...' : t('createInviteCode') || 'Tạo mã'}
-        </button>
-        {code && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleCopyCode()
-            }}
-            className="px-2 py-1 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded transition"
-          >
-            {copied ? t('copied') || 'Đã copy' : t('copy') || 'Copy'}
-          </button>
-        )}
-      </div>
-    </div>
   )
 }
 

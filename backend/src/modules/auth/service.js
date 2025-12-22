@@ -132,7 +132,31 @@ exports.login = async (req, res) => {
 };
 
 exports.me = async (req, res) => {
-  res.json({ user: req.user });
+  const prisma = req.prisma;
+  const userId = req.user.id;
+
+  try {
+    // Query database để lấy full user data với name
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error('Get user error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
 exports.updateMe = async (req, res) => {

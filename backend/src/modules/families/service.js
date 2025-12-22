@@ -168,6 +168,56 @@ exports.joinFamilyByCode = async (req, res) => {
   }
 };
 
+exports.sendInviteEmail = async (req, res) => {
+  const prisma = req.prisma;
+  const userId = req.user.id;
+  const familyId = parseInt(req.params.id, 10);
+  const { email, inviteCode, inviteLink } = req.body;
+
+  if (!email || !inviteCode) {
+    return res.status(400).json({ message: 'Missing email or invite code' });
+  }
+
+  try {
+    // Kiểm tra user có quyền trong family không
+    const membership = await prisma.familyMember.findFirst({
+      where: { userId, familyId },
+    });
+    if (!membership) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    // Kiểm tra email format
+    if (!email.includes('@')) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Log email để gửi (trong production có thể dùng nodemailer hoặc email service)
+    console.log('=== INVITE EMAIL ===');
+    console.log('To:', email);
+    console.log('Subject: Bạn được mời tham gia gia đình');
+    console.log('Invite Code:', inviteCode);
+    console.log('Invite Link:', inviteLink);
+    console.log('===================');
+
+    // TODO: Implement actual email sending với nodemailer hoặc email service
+    // Hiện tại chỉ log ra console và trả về success
+    // Để gửi email thật, cần:
+    // 1. Cài đặt nodemailer: npm install nodemailer
+    // 2. Cấu hình SMTP credentials trong .env
+    // 3. Implement email sending logic
+
+    res.json({ 
+      success: true, 
+      message: 'Invite email sent successfully',
+      note: 'Email logged to console. Implement email service to send actual emails.'
+    });
+  } catch (err) {
+    console.error('Error sending invite email:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 exports.updateMemberRole = async (req, res) => {
   const prisma = req.prisma;
   const userId = req.user.id;

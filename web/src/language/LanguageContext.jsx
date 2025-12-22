@@ -98,6 +98,7 @@ const translations = {
     selectedDate: 'Selected Date',
     joinByLink: 'Join by Link',
     joinByCode: 'Join by Code',
+    nameRequired: 'Name is required',
     familyGroupName: 'New family group name',
     familyGroupNameExample: 'Example: Nam\'s family',
     createGroup: 'Create Group',
@@ -170,6 +171,7 @@ const translations = {
     inviteCodeFailed: 'Failed to create invite code',
     inviteCodeCopied: 'Invite code copied!',
     cannotCopyCode: 'Cannot copy invite code',
+    inviteEmailSent: 'Invite email sent successfully!',
     
     // Login/Register Extended
     loginToStart: 'Login to start',
@@ -407,6 +409,7 @@ const translations = {
     inviteCodeCreated: 'Đã tạo mã mời thành công!',
     inviteCodeCopied: 'Đã copy mã mời!',
     cannotCopyCode: 'Không thể copy mã mời',
+    inviteEmailSent: 'Đã gửi email mời thành công!',
     inviteCodeFailed: 'Không tạo được mã mời',
     
     // Login/Register Extended
@@ -519,6 +522,7 @@ const translations = {
     pleaseSelectMember: 'Vui lòng chọn thành viên để xem tiến độ.',
     joinByLink: 'Tham gia bằng link',
     joinByCode: 'Tham gia bằng mã code',
+    nameRequired: 'Vui lòng nhập tên',
     familyGroupName: 'Tên nhóm gia đình mới',
     familyGroupNameExample: 'Ví dụ: Gia đình nhà Nam',
     createGroup: 'Tạo nhóm',

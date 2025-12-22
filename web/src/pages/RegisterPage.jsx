@@ -36,9 +36,19 @@ function RegisterPage() {
     setLoading(true)
     try {
       const name = `${firstName} ${lastName}`.trim()
+      if (!name) {
+        setError(t('nameRequired') || 'Vui lòng nhập tên')
+        setLoading(false)
+        return
+      }
       const res = await api.post('/auth/register', { name, email, password })
-      login(res.data)
-      navigate('/')
+      console.log('Register response:', res.data)
+      if (res.data && res.data.user && res.data.user.name) {
+        login(res.data)
+        navigate('/')
+      } else {
+        setError('Đăng ký thành công nhưng không nhận được thông tin người dùng. Vui lòng đăng nhập lại.')
+      }
     } catch (err) {
       setError(err.response?.data?.message || t('registerFailed'))
     } finally {

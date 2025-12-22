@@ -87,10 +87,10 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
           <div className="p-4 bg-orange-600/50 border-b border-orange-400/30">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">
-                {user?.name?.[0]?.toUpperCase() || 'U'}
+                {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">{user?.name || 'Người dùng'}</div>
+                <div className="font-semibold truncate">{user?.name || user?.email?.split('@')[0] || 'Người dùng'}</div>
                 <div className="text-xs text-orange-100 truncate">{user?.email || ''}</div>
               </div>
             </div>
@@ -217,8 +217,8 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                     )}
                   </button>
                   {openBell && (
-                    <div className="absolute right-0 top-full mt-2 z-30 w-80 rounded-xl border border-slate-200 bg-white shadow-lg text-xs">
-                      <div className="px-3 py-2 border-b border-slate-100 font-medium text-slate-700">
+                    <div className="absolute right-0 top-full mt-2 z-30 w-80 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1A202C] shadow-lg text-xs">
+                      <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700 font-medium text-slate-900 dark:text-white">
                         Thông báo
                       </div>
                       <div className="max-h-64 overflow-y-auto">
@@ -229,16 +229,16 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                             <button
                               key={n.id}
                               onClick={() => markReadMutation.mutate(n.id)}
-                              className={`w-full text-left px-3 py-2 border-b border-slate-50 hover:bg-slate-50 ${
+                              className={`w-full text-left px-3 py-2 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 ${
                                 !n.isRead ? 'bg-orange-50/60 dark:bg-orange-900/30' : ''
                               }`}
                             >
-                              <div className="font-medium text-slate-800 mb-0.5">
+                              <div className="font-medium text-slate-800 dark:text-white mb-0.5">
                                 {n.type === 'assigned' && 'Bạn được giao việc mới'}
                                 {n.type === 'overdue' && 'Công việc đã quá hạn'}
                               </div>
                               {n.task && (
-                                <div className="text-slate-900 dark:text-slate-300">{n.task.title}</div>
+                                <div className="text-slate-900 dark:text-white">{n.task.title}</div>
                               )}
                               <div className="text-[10px] text-slate-700 dark:text-slate-400 mt-0.5">
                                 {new Date(n.createdAt).toLocaleString('vi-VN')}

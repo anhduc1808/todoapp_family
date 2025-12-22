@@ -44,22 +44,22 @@ function LoginPage() {
       const res = await api.post('/auth/login', loginData)
       
       if (res.data && res.data.token && res.data.user) {
+        console.log('Login successful, calling login function')
         login(res.data)
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
         }
-        // Kiểm tra xem có redirect URL sau khi login không (ví dụ: join family link)
-        const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
-        if (redirectAfterLogin) {
-          localStorage.removeItem('redirectAfterLogin')
-          setTimeout(() => {
+        // Đợi một chút để đảm bảo state đã được cập nhật
+        setTimeout(() => {
+          // Kiểm tra xem có redirect URL sau khi login không (ví dụ: join family link)
+          const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
+          if (redirectAfterLogin) {
+            localStorage.removeItem('redirectAfterLogin')
             navigate(redirectAfterLogin)
-          }, 100)
-        } else {
-          setTimeout(() => {
+          } else {
             navigate('/')
-          }, 100)
-        }
+          }
+        }, 200)
       } else {
         setError('Invalid response from server')
       }

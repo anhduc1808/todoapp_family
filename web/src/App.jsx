@@ -24,7 +24,15 @@ function PrivateRoute({ children }) {
   if (!auth) {
     return <Navigate to="/login" replace />
   }
-  const { user } = auth
+  const { user, isLoading } = auth
+  // Đợi cho đến khi auth check hoàn tất
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin"></div>
+      </div>
+    )
+  }
   if (!user) return <Navigate to="/login" replace />
   return children
 }

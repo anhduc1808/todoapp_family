@@ -84,10 +84,10 @@ function SettingsPage() {
         {/* Profile Summary */}
         <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-slate-200 dark:border-slate-500">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-bold text-xl">
-            {user?.name?.[0]?.toUpperCase() || 'U'}
+            {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{user?.name || 'User'}</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{user?.name || user?.email?.split('@')[0] || 'User'}</h2>
             <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{user?.email || ''}</p>
           </div>
         </div>

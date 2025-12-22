@@ -9,8 +9,8 @@ function LanguageSwitcher() {
         onClick={() => changeLanguage('vi')}
         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
           language === 'vi'
-            ? 'bg-orange-500 text-white'
-            : 'bg-slate-100 text-slate-900 dark:text-slate-300 hover:bg-slate-200'
+            ? 'bg-white text-orange-600 dark:bg-orange-500 dark:text-white'
+            : 'bg-white/20 text-white hover:bg-white/30 dark:bg-white/20 dark:text-white'
         }`}
       >
         🇻🇳 VI
@@ -19,8 +19,8 @@ function LanguageSwitcher() {
         onClick={() => changeLanguage('en')}
         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
           language === 'en'
-            ? 'bg-orange-500 text-white'
-            : 'bg-slate-100 text-slate-900 dark:text-slate-300 hover:bg-slate-200'
+            ? 'bg-white text-orange-600 dark:bg-orange-500 dark:text-white'
+            : 'bg-white/20 text-white hover:bg-white/30 dark:bg-white/20 dark:text-white'
         }`}
       >
         🇬🇧 EN

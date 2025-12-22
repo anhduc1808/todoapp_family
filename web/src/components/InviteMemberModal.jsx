@@ -47,18 +47,57 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
 
   const sendInviteMutation = useMutation({
     mutationFn: async () => {
-      // Tự động dùng window.location.origin (domain thực tế khi deploy)
+      if (!inviteCode && !familyData?.family?.inviteCode) {
+        throw new Error('Invite code is required')
+      }
+      const code = inviteCode || familyData?.family?.inviteCode
       const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
-      const link = `${frontendUrl}/join?code=${inviteCode}`
-      await navigator.clipboard.writeText(link)
-      return { success: true }
+      const link = `${frontendUrl}/join?code=${code}`
+      
+      try {
+        const res = await api.post(`/families/${familyId}/invite/send`, {
+          email: email.trim(),
+          inviteCode: code,
+          inviteLink: link
+        })
+        return res.data
+      } catch (err) {
+        if (err.response?.status === 404) {
+          await navigator.clipboard.writeText(link)
+          return { success: true, copied: true, link }
+        }
+        throw err
+      }
     },
-    onSuccess: () => {
-      setToast({ message: t('linkCopiedMessage'), type: 'success' })
+    onSuccess: (data) => {
+      if (data?.copied) {
+        setToast({ 
+          message: t('linkCopiedMessage') || 'Đã copy link mời! Gửi link này cho người bạn muốn mời.', 
+          type: 'success' 
+        })
+      } else {
+        setToast({ message: t('inviteEmailSent') || 'Đã gửi email mời thành công!', type: 'success' })
+      }
       setEmail('')
     },
     onError: (err) => {
-      setToast({ message: err.response?.data?.message || t('inviteFailed'), type: 'error' })
+      console.error('Send invite error:', err)
+      const code = inviteCode || familyData?.family?.inviteCode
+      if (code) {
+        const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
+        const link = `${frontendUrl}/join?code=${code}`
+        navigator.clipboard.writeText(link).then(() => {
+          setToast({ 
+            message: t('linkCopiedMessage') || 'Đã copy link mời! Gửi link này cho người bạn muốn mời.', 
+            type: 'success' 
+          })
+          setEmail('')
+        }).catch(() => {
+          setToast({ message: err.response?.data?.message || t('inviteFailed') || 'Không thể gửi email mời', type: 'error' })
+        })
+      } else {
+        setToast({ message: err.response?.data?.message || t('inviteFailed') || 'Không thể gửi email mời', type: 'error' })
+      }
     },
   })
 
@@ -83,9 +122,15 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
       return
     }
 
-    if (!inviteCode) {
-      // Tạo invite code trước
-      await generateInviteMutation.mutateAsync()
+    let code = inviteCode || familyData?.family?.inviteCode
+    if (!code) {
+      try {
+        const result = await generateInviteMutation.mutateAsync()
+        code = result.inviteCode || inviteCode
+      } catch (err) {
+        setToast({ message: t('inviteCodeFailed') || 'Không thể tạo mã mời', type: 'error' })
+        return
+      }
     }
 
     sendInviteMutation.mutate()
@@ -97,7 +142,6 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
       await generateInviteMutation.mutateAsync()
     }
 
-    // Tự động dùng window.location.origin (domain thực tế khi deploy)
     const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
     const link = `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`
     try {
@@ -112,7 +156,6 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
 
   const handleCopyCode = async () => {
     if (!inviteCode) {
-      // Tạo invite code trước
       await generateInviteMutation.mutateAsync()
     }
 
@@ -146,7 +189,7 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
 
   if (!isOpen) return null
 
-  // Option 1: Tự động dùng window.location.origin (domain thực tế khi deploy)
+  // Tự động dùng window.location.origin (domain thực tế khi deploy)
   // - Development: http://localhost:5173
   // - Production: https://your-app.vercel.app (tự động từ Vercel)
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin

@@ -71,20 +71,20 @@ function CalendarModal({ isOpen, onClose }) {
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="fixed right-4 top-20 z-50 bg-white rounded-xl shadow-2xl border border-slate-200 w-80">
+      <div className="fixed right-4 top-20 z-50 bg-white dark:bg-[#1A202C] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-80">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
             <Icon name="calendar" className="text-orange-500" size="md" />
-            <h3 className="text-lg font-bold text-slate-900">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               {t('calendar') || 'Lịch'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
+            className="text-slate-700 dark:text-white hover:text-slate-900 dark:hover:text-slate-200"
           >
-            <Icon name="x" className="text-slate-700 dark:text-slate-300" size="sm" />
+            <Icon name="x" className="text-slate-700 dark:text-white" size="sm" />
           </button>
         </div>
 
@@ -94,12 +94,12 @@ function CalendarModal({ isOpen, onClose }) {
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={goToPreviousMonth}
-              className="p-2 rounded-lg hover:bg-slate-100 transition"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition"
             >
-              <Icon name="arrowLeft" className="text-slate-600" size="sm" />
+              <Icon name="arrowLeft" className="text-slate-600 dark:text-white" size="sm" />
             </button>
             <div className="text-center">
-              <div className="font-semibold text-slate-900">
+              <div className="font-semibold text-slate-900 dark:text-white">
                 {monthNames[month]} {year}
               </div>
             </div>
@@ -116,7 +116,7 @@ function CalendarModal({ isOpen, onClose }) {
             {dayNames.map((day) => (
               <div
                 key={day}
-                className="text-center text-xs font-semibold text-slate-500 py-1"
+                className="text-center text-xs font-semibold text-slate-500 dark:text-slate-300 py-1"
               >
                 {day}
               </div>
@@ -135,7 +135,7 @@ function CalendarModal({ isOpen, onClose }) {
                   ${!date ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100'}
                   ${isToday(date) ? 'bg-orange-500 text-white font-bold' : ''}
                   ${isSelected(date) && !isToday(date) ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-semibold' : ''}
-                  ${!isToday(date) && !isSelected(date) ? 'text-slate-700' : ''}
+                  ${!isToday(date) && !isSelected(date) ? 'text-slate-700 dark:text-slate-300' : ''}
                 `}
               >
                 {date ? date.getDate() : ''}
@@ -152,11 +152,11 @@ function CalendarModal({ isOpen, onClose }) {
           </button>
 
           {/* Selected Date Info */}
-          <div className="mt-4 pt-4 border-t border-slate-200">
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
             <div className="text-xs text-slate-700 dark:text-slate-300 mb-1">
               {t('selectedDate') || 'Ngày đã chọn'}
             </div>
-            <div className="text-sm font-semibold text-slate-900">
+            <div className="text-sm font-semibold text-slate-900 dark:text-white">
               {selectedDate.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
                 weekday: 'long',
                 year: 'numeric',

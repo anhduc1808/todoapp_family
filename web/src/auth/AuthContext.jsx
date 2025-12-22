@@ -8,19 +8,34 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'https://family-todoapp-backen
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('token'))
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (token) {
-      axios
-        .get(`${API_BASE}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((res) => setUser(res.data.user))
-        .catch(() => {
-          setUser(null)
-          setToken(null)
-          localStorage.removeItem('token')
-        })
+      // Chỉ gọi /auth/me nếu chưa có user (trường hợp refresh page)
+      if (!user) {
+        setIsLoading(true)
+        axios
+          .get(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .then((res) => {
+            // Lưu user data từ backend (có name từ database)
+            const userData = res.data.user || {}
+            console.log('Loaded user from /auth/me:', userData)
+            // Không fallback về email ở đây, để UI xử lý fallback nếu cần
+            setUser(userData)
+            setIsLoading(false)
+          })
+          .catch(() => {
+            setUser(null)
+            setToken(null)
+            localStorage.removeItem('token')
+            setIsLoading(false)
+          })
+      }
+    } else {
+      setIsLoading(false)
     }
   }, [token])
 
@@ -30,9 +45,18 @@ export function AuthProvider({ children }) {
       return
     }
     console.log('Setting token and user:', { token: data.token, user: data.user })
+    // Set user trước để tránh race condition với useEffect
+    const userData = {
+      id: data.user.id,
+      name: data.user.name || data.user.email?.split('@')[0] || 'User',
+      email: data.user.email
+    }
+    console.log('Setting user data:', userData)
+    setUser(userData)
+    // Sau đó mới set token để useEffect không override user
     setToken(data.token)
     localStorage.setItem('token', data.token)
-    setUser(data.user)
+    setIsLoading(false)
   }
 
   const logout = () => {
@@ -47,8 +71,10 @@ export function AuthProvider({ children }) {
         const res = await axios.get(`${API_BASE}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        setUser(res.data.user)
-        return res.data.user
+        // Lưu user data trực tiếp từ backend (có name từ database)
+        const userData = res.data.user || {}
+        setUser(userData)
+        return userData
       } catch (err) {
         console.error('Failed to refresh user:', err)
         return null
@@ -62,7 +88,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, updateUser }}>
+    <AuthContext.Provider value={{ user, token, login, logout, refreshUser, updateUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   )
