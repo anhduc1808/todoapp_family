@@ -1,7 +1,8 @@
 // Translation service using Google Translate API (free, no API key needed)
 // Using @vitalets/google-translate-api package
 
-const translate = require('@vitalets/google-translate-api');
+const translateModule = require('@vitalets/google-translate-api');
+const translate = translateModule.translate || translateModule;
 
 // Language code mapping
 const languageMap = {
