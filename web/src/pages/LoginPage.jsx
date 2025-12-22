@@ -332,18 +332,27 @@ function LoginPage() {
                   required
                 />
               </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-orange-500 border-slate-400 rounded focus:ring-orange-500 cursor-pointer"
-                  style={{ accentColor: '#F4511E' }}
-                />
-                <label htmlFor="rememberMe" className="ml-2 text-sm text-slate-900 font-semibold cursor-pointer">
-                  {t('rememberMe') || 'Remember Me'}
-                </label>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 border-slate-400 rounded focus:ring-orange-500 cursor-pointer"
+                    style={{ accentColor: '#F4511E' }}
+                  />
+                  <label htmlFor="rememberMe" className="ml-2 text-sm text-slate-900 font-semibold cursor-pointer">
+                    {t('rememberMe') || 'Remember Me'}
+                  </label>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-sm font-semibold text-orange-600 hover:text-orange-700"
+                >
+                  {t('forgotPassword') || 'Forgot Password?'}
+                </button>
               </div>
               <button
                 type="submit"

@@ -7,7 +7,8 @@ const translations = {
     // Navigation
     dashboard: 'Dashboard',
     myTasks: 'My Task',
-    settings: 'Settings',
+    // Sidebar / menu label for settings/profile
+    settings: 'My Profile',
     logout: 'Logout',
     home: 'Home',
     
@@ -87,6 +88,14 @@ const translations = {
     dontHaveAccount: "Don't have an account?",
     createOne: 'Create One',
     orLoginWith: 'Or, Login with',
+    forgotPassword: 'Forgot Password?',
+    forgotPasswordDesc: "Enter your registered email address and we'll send you a link to reset your password.",
+    sendResetLink: 'Send Reset Link',
+    rememberPassword: 'Remember your password?',
+    backToSignIn: 'Back to Sign In',
+    orContactSupport: 'Or, contact support',
+    resetLinkSent: 'If an account exists for this email, a reset link has been sent (demo only).',
+    resetLinkFailed: 'Failed to send reset link. Please try again.',
     mustAgreeToTerms: 'You must agree to the terms',
     
     // Other
@@ -131,8 +140,8 @@ const translations = {
     editTaskStatus: 'Edit Task Status',
     editTaskPriority: 'Edit Task Priority',
     
-    // Settings
-    accountInfo: 'Account Information',
+    // Settings / Profile page
+    accountInfo: 'Account Settings',
     firstName: 'First Name',
     lastName: 'Last Name',
     emailAddress: 'Email Address',
@@ -274,7 +283,8 @@ const translations = {
     dashboard: 'Bảng điều khiển',
     myTasks: 'Công việc của tôi',
     taskCategories: 'Danh mục công việc',
-    settings: 'Cài đặt',
+    // Sidebar / menu label for settings/profile
+    settings: 'Hồ sơ của tôi',
     logout: 'Đăng xuất',
     home: 'Trang chủ',
     
@@ -370,8 +380,8 @@ const translations = {
     editTaskStatus: 'Chỉnh sửa trạng thái công việc',
     editTaskPriority: 'Chỉnh sửa độ ưu tiên công việc',
     
-    // Settings
-    accountInfo: 'Thông tin tài khoản',
+    // Settings / Profile page
+    accountInfo: 'Cài đặt tài khoản',
     firstName: 'Tên',
     lastName: 'Họ',
     emailAddress: 'Địa chỉ email',
@@ -432,6 +442,14 @@ const translations = {
     dontHaveAccount: 'Chưa có tài khoản?',
     createOne: 'Tạo tài khoản',
     orLoginWith: 'Hoặc, đăng nhập bằng',
+    forgotPassword: 'Quên mật khẩu?',
+    forgotPasswordDesc: 'Nhập địa chỉ email đã đăng ký, chúng tôi sẽ gửi link đặt lại mật khẩu cho bạn.',
+    sendResetLink: 'Gửi link đặt lại mật khẩu',
+    rememberPassword: 'Nhớ mật khẩu rồi?',
+    backToSignIn: 'Quay lại đăng nhập',
+    orContactSupport: 'Hoặc, liên hệ hỗ trợ',
+    resetLinkSent: 'Nếu email tồn tại, link đặt lại mật khẩu đã được gửi (demo).',
+    resetLinkFailed: 'Không thể gửi link đặt lại mật khẩu. Vui lòng thử lại.',
     mustAgreeToTerms: 'Bạn phải đồng ý với điều khoản',
     displayName: 'Tên hiển thị',
     pleaseEnterTitle: 'Vui lòng nhập tiêu đề công việc',

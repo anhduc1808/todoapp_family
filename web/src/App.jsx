@@ -6,6 +6,7 @@ import { ThemeProvider } from './theme/ThemeContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import JoinPage from './pages/JoinPage'
 import DashboardPage from './pages/DashboardPage'
 import FamilyTasksPage from './pages/FamilyTasksPage'
@@ -48,6 +49,7 @@ function App() {
               <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route
               path="/join"
               element={<JoinPage />}

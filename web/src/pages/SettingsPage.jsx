@@ -42,14 +42,11 @@ function SettingsPage() {
     },
     onSuccess: async (data) => {
       setToast({ message: t('updateSuccess'), type: 'success' })
-      // Cập nhật user trực tiếp từ response nếu có
       if (data?.user && updateUser) {
         updateUser(data.user)
       } else if (refreshUser) {
-        // Nếu không có user trong response, gọi refreshUser
         await refreshUser()
       }
-      // Invalidate queries để refresh data
       queryClient.invalidateQueries({ queryKey: ['user'] })
     },
     onError: (err) => {
