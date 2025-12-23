@@ -53,7 +53,15 @@ exports.register = async (req, res) => {
 
     console.log('User created successfully:', user.id);
     const token = generateToken(user);
-    res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl } });
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl || null,
+      },
+    });
   } catch (err) {
     console.error('Register error:', err);
     console.error('Error stack:', err.stack);
@@ -113,7 +121,15 @@ exports.login = async (req, res) => {
 
     console.log('Login successful for user:', user.id);
     const token = generateToken(user);
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl } });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl || null,
+      },
+    });
   } catch (err) {
     console.error('Login error:', err);
     console.error('Error stack:', err.stack);
@@ -180,7 +196,11 @@ exports.updateMe = async (req, res) => {
     // Lưu ý: contactNumber và position có thể cần thêm vào schema nếu cần lưu trữ
     // Thêm avatar (demo lưu base64)
     if (avatarBase64 && avatarBase64.trim() !== '') {
-      updateData.avatarUrl = avatarBase64;
+      // Nếu đã có prefix data:image thì giữ nguyên, nếu chưa thì thêm
+      const value = avatarBase64.startsWith('data:image')
+        ? avatarBase64
+        : `data:image/jpeg;base64,${avatarBase64}`;
+      updateData.avatarUrl = value;
     }
 
     const updated = await prisma.user.update({
@@ -330,8 +350,9 @@ exports.facebookLogin = async (req, res) => {
   }
 
   try {
+    // Lấy cả avatar
     const fbResponse = await axios.get(
-      `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`,
+      `https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${accessToken}`,
       { timeout: 10000 }
     );
 
@@ -339,7 +360,8 @@ exports.facebookLogin = async (req, res) => {
       return res.status(400).json({ message: 'Invalid Facebook response' });
     }
 
-    const { id: facebookId, name, email } = fbResponse.data;
+    const { id: facebookId, name, email, picture } = fbResponse.data;
+    const avatarUrl = picture?.data?.url || null;
 
     if (!email) {
       return res.status(400).json({ message: 'Email is required from Facebook. Please grant email permission.' });
@@ -353,12 +375,26 @@ exports.facebookLogin = async (req, res) => {
           name: name || 'Facebook User',
           email,
           passwordHash: '',
+          avatarUrl: avatarUrl || null,
         },
+      });
+    } else if (!user.avatarUrl && avatarUrl) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { avatarUrl },
       });
     }
 
     const token = generateToken(user);
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl || null,
+      },
+    });
   } catch (err) {
     console.error('Facebook login error:', err);
     if (err.response?.status === 401 || err.response?.status === 400) {
@@ -381,7 +417,7 @@ exports.googleLogin = async (req, res) => {
   }
 
   try {
-    let googleUserInfo = { email, name };
+    let googleUserInfo = { email, name, avatarUrl: null };
 
     if (idToken) {
       try {
@@ -394,6 +430,7 @@ exports.googleLogin = async (req, res) => {
           googleUserInfo = {
             email: userInfoRes.data.email,
             name: userInfoRes.data.name || userInfoRes.data.given_name || name,
+            avatarUrl: userInfoRes.data.picture || null,
           };
         }
       } catch (accessTokenErr) {
@@ -407,12 +444,13 @@ exports.googleLogin = async (req, res) => {
             googleUserInfo = {
               email: googleResponse.data.email,
               name: googleResponse.data.name || name,
+              avatarUrl: googleResponse.data.picture || null,
             };
           }
         } catch (tokenErr) {
           console.error('Google token verification failed:', tokenErr);
           if (email && name) {
-            googleUserInfo = { email, name };
+            googleUserInfo = { email, name, avatarUrl: null };
           } else {
             return res.status(400).json({ message: 'Invalid Google token. Please try again.' });
           }
@@ -432,12 +470,26 @@ exports.googleLogin = async (req, res) => {
           name: googleUserInfo.name || 'Google User',
           email: googleUserInfo.email,
           passwordHash: '',
+          avatarUrl: googleUserInfo.avatarUrl || null,
         },
+      });
+    } else if (!user.avatarUrl && googleUserInfo.avatarUrl) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { avatarUrl: googleUserInfo.avatarUrl },
       });
     }
 
     const token = generateToken(user);
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl || null,
+      },
+    });
   } catch (err) {
     console.error('Google login error:', err);
     if (err.response?.status === 401 || err.response?.status === 400) {
