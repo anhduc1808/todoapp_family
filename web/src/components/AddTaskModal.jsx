@@ -116,11 +116,14 @@ function AddTaskModal({ isOpen, onClose, familyId, members, onSuccess, autoAssig
       }
     }
 
+    // Chuyển datetime-local (giờ địa phương) sang ISO UTC để lưu
+    const dueDateToSend = date ? new Date(date).toISOString() : null
+
     createMutation.mutate({
       title,
       description: description || null,
       priority: priority === 'extreme' ? 'high' : priority,
-      dueDate: date || null,
+      dueDate: dueDateToSend,
       imageUrl: imageUrlToSend,
       assigneeIds: selectedAssignees,
     })

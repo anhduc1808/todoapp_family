@@ -13,7 +13,8 @@ import { useLanguage } from '../language/LanguageContext'
 import Icon from '../components/Icon'
 
 function FamilyTasksPage() {
-  const { t } = useLanguage()
+  const { t: tRaw } = useLanguage()
+  const t = typeof tRaw === 'function' ? tRaw : (key) => key
   const { familyId } = useParams()
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -25,6 +26,7 @@ function FamilyTasksPage() {
   const [timeFilter, setTimeFilter] = useState('all')
   const [sortBy, setSortBy] = useState('dueDate')
   const [sortOrder, setSortOrder] = useState('asc')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', familyId, selectedMemberId],
@@ -90,6 +92,16 @@ function FamilyTasksPage() {
   // Lọc và sắp xếp tasks
   const tasks = useMemo(() => {
     let filtered = [...allTasks]
+
+    // Lọc theo từ khóa tìm kiếm (tiêu đề, mô tả)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter((t) => {
+        const title = t.title?.toLowerCase() || ''
+        const description = t.description?.toLowerCase() || ''
+        return title.includes(query) || description.includes(query)
+      })
+    }
 
     // Lọc theo thời gian (deadline)
     if (timeFilter !== 'all') {
@@ -177,7 +189,7 @@ function FamilyTasksPage() {
     })
 
     return filtered
-  }, [allTasks, statusFilter, timeFilter, sortBy, sortOrder])
+  }, [allTasks, statusFilter, timeFilter, sortBy, sortOrder, searchQuery])
 
   // Tính thống kê cho danh sách task hiện tại (dựa trên filter)
   const stats = useMemo(() => {
@@ -221,7 +233,11 @@ function FamilyTasksPage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout
+      showSearch={true}
+      searchValue={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
@@ -385,13 +401,13 @@ function FamilyTasksPage() {
               <span>{t('upcomingDeadline')}</span>
             </div>
             <ul className="space-y-1.5">
-              {upcomingWarnings.map((t) => (
-                <li key={t.id} className="flex items-center gap-2 text-sm text-amber-900" style={{ color: '#78350f' }}>
+              {upcomingWarnings.map((item) => (
+                <li key={item.id} className="flex items-center gap-2 text-sm text-amber-900" style={{ color: '#78350f' }}>
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                  <span className="font-medium">{t.title}</span>
-                  {t.dueDate && (
+                  <span className="font-medium">{item.title}</span>
+                  {item.dueDate && (
                     <span className="text-xs opacity-75">
-                      – {t('deadlinePrefix')} {formatShortDue(t.dueDate)}
+                      – {t('deadlinePrefix')} {formatShortDue(item.dueDate)}
                     </span>
                   )}
                 </li>

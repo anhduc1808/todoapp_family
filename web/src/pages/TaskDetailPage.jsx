@@ -1,3 +1,10 @@
+  // Chuẩn hóa chuỗi ISO/UTC về dạng input datetime-local
+  const toInputValue = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+    return d.toISOString().slice(0, 16)
+  }
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -53,24 +60,17 @@ function TaskDetailPage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
 
-  // Chuyển ISO date sang dạng local phù hợp với input datetime-local (YYYY-MM-DDTHH:mm)
-  const toLocalInputValue = (dateStr) => {
+  const toInputValue = (dateStr) => {
     if (!dateStr) return ''
-    const d = new Date(dateStr)
-    const pad = (n) => String(n).padStart(2, '0')
-    const year = d.getFullYear()
-    const month = pad(d.getMonth() + 1)
-    const day = pad(d.getDate())
-    const hours = pad(d.getHours())
-    const minutes = pad(d.getMinutes())
-    return `${year}-${month}-${day}T${hours}:${minutes}`
+    if (dateStr.includes('T')) return dateStr.slice(0, 16)
+    return dateStr
   }
 
   useEffect(() => {
     if (task) {
       setTitle(task.title)
       setStatus(task.status)
-      setDueDate(task.dueDate ? toLocalInputValue(task.dueDate) : '')
+      setDueDate(task.dueDate ? toInputValue(task.dueDate) : '')
     }
   }, [task])
 
@@ -79,7 +79,8 @@ function TaskDetailPage() {
       setSaving(true)
       const res = await api.put(`/tasks/${taskId}`, {
         title,
-        dueDate: dueDate || null,
+        // convert local input to UTC ISO before save
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       })
       return res.data
     },
@@ -138,15 +139,16 @@ function TaskDetailPage() {
     }
   }
 
-  const formatDueFull = (dateStr) => {
+  // Hiển thị dueDate theo đúng giờ địa phương
+  const formatDueLocal = (dateStr) => {
     if (!dateStr) return 'Chưa đặt hạn'
     const d = new Date(dateStr)
     return d.toLocaleString('vi-VN', {
-      hour: '2-digit',
-      minute: '2-digit',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -283,7 +285,7 @@ function TaskDetailPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-slate-900 dark:text-slate-300">Hạn:</span>
                   <span className="text-sm text-slate-900 dark:text-slate-100">
-                    {formatDueFull(task.dueDate)}
+                    {formatDueLocal(task.dueDate)}
                   </span>
                 </div>
               )}
