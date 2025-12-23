@@ -53,11 +53,24 @@ function TaskDetailPage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
 
+  // Chuyển ISO date sang dạng local phù hợp với input datetime-local (YYYY-MM-DDTHH:mm)
+  const toLocalInputValue = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    const pad = (n) => String(n).padStart(2, '0')
+    const year = d.getFullYear()
+    const month = pad(d.getMonth() + 1)
+    const day = pad(d.getDate())
+    const hours = pad(d.getHours())
+    const minutes = pad(d.getMinutes())
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+  }
+
   useEffect(() => {
     if (task) {
       setTitle(task.title)
       setStatus(task.status)
-      setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '')
+      setDueDate(task.dueDate ? toLocalInputValue(task.dueDate) : '')
     }
   }, [task])
 
