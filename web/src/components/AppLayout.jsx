@@ -86,9 +86,21 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
           {/* User Profile */}
           <div className="p-4 bg-orange-600/50 border-b border-orange-400/30">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">
-                {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-              </div>
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user?.name || user?.email || 'Avatar'}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shadow-sm"
+                  onError={(e) => {
+                    console.error('Avatar image failed to load:', user.avatarUrl)
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">
+                  {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">{user?.name || user?.email?.split('@')[0] || 'Người dùng'}</div>
                 <div className="text-xs text-orange-100 truncate">{user?.email || ''}</div>
@@ -230,17 +242,17 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                               key={n.id}
                               onClick={() => markReadMutation.mutate(n.id)}
                               className={`w-full text-left px-3 py-2 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                                !n.isRead ? 'bg-orange-50/60 dark:bg-orange-900/30' : ''
+                                !n.isRead ? 'bg-orange-50/60 dark:bg-orange-900/20' : ''
                               }`}
                             >
-                              <div className="font-medium text-slate-800 dark:text-white mb-0.5">
+                              <div className="font-medium text-slate-900 dark:text-white mb-0.5">
                                 {n.type === 'assigned' && 'Bạn được giao việc mới'}
                                 {n.type === 'overdue' && 'Công việc đã quá hạn'}
                               </div>
                               {n.task && (
-                                <div className="text-slate-900 dark:text-white">{n.task.title}</div>
+                                <div className="text-slate-900 dark:text-white font-medium">{n.task.title}</div>
                               )}
-                              <div className="text-[10px] text-slate-700 dark:text-slate-400 mt-0.5">
+                              <div className="text-[10px] text-slate-900 dark:text-white mt-0.5">
                                 {new Date(n.createdAt).toLocaleString('vi-VN')}
                               </div>
                             </button>

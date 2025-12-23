@@ -46,7 +46,8 @@ export function AuthProvider({ children }) {
     const userData = {
       id: data.user.id,
       name: data.user.name || data.user.email?.split('@')[0] || 'User',
-      email: data.user.email
+      email: data.user.email,
+      avatarUrl: data.user.avatarUrl || null,
     }
     console.log('Setting user data:', userData)
     setUser(userData)

@@ -53,7 +53,7 @@ exports.register = async (req, res) => {
 
     console.log('User created successfully:', user.id);
     const token = generateToken(user);
-    res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl } });
   } catch (err) {
     console.error('Register error:', err);
     console.error('Error stack:', err.stack);
@@ -113,7 +113,7 @@ exports.login = async (req, res) => {
 
     console.log('Login successful for user:', user.id);
     const token = generateToken(user);
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    res.json({ token, user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl } });
   } catch (err) {
     console.error('Login error:', err);
     console.error('Error stack:', err.stack);
@@ -162,7 +162,7 @@ exports.me = async (req, res) => {
 exports.updateMe = async (req, res) => {
   const prisma = req.prisma;
   const userId = req.user.id;
-  const { name, email, contactNumber, position } = req.body;
+  const { name, email, avatarBase64, contactNumber, position } = req.body;
 
   try {
     // Kiểm tra email có bị trùng với user khác không (nếu thay đổi email)
@@ -178,7 +178,10 @@ exports.updateMe = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     // Lưu ý: contactNumber và position có thể cần thêm vào schema nếu cần lưu trữ
-    // Hiện tại chỉ cập nhật name và email
+    // Thêm avatar (demo lưu base64)
+    if (avatarBase64 && avatarBase64.trim() !== '') {
+      updateData.avatarUrl = avatarBase64;
+    }
 
     const updated = await prisma.user.update({
       where: { id: userId },
