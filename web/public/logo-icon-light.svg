@@ -1,0 +1,25 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Light background version -->
+  <!-- White rounded square container -->
+  <rect x="0" y="0" width="64" height="64" rx="12" fill="#FFFFFF"/>
+  
+  <!-- House icon -->
+  <g transform="translate(32, 32)">
+    <!-- House roof (orange) -->
+    <path d="M -20 -16 L 0 -36 L 20 -16 Z" fill="#F26C2A"/>
+    
+    <!-- House body (white fill, dark blue outline) -->
+    <rect x="-20" y="-16" width="40" height="28" fill="#FFFFFF" stroke="#294A9C" stroke-width="2.5" rx="1.5"/>
+    
+    <!-- Small square inside house (white fill, dark blue outline) -->
+    <rect x="-10" y="-6" width="20" height="20" fill="#FFFFFF" stroke="#294A9C" stroke-width="2" rx="1.5"/>
+    
+    <!-- Checkmark inside small square (green) -->
+    <path d="M -5 2 L -1 6 L 5 -2" 
+          stroke="#6ABF50" 
+          stroke-width="2.5" 
+          fill="none" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+</svg>

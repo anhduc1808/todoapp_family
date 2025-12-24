@@ -31,7 +31,6 @@ function ForgotPasswordPage() {
       return
     }
 
-    // Hiện tại chưa kết nối backend reset mật khẩu, chỉ hiển thị thông báo giả lập
     setLoading(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))

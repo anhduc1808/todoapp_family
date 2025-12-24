@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../api/client'
@@ -6,6 +6,7 @@ import AppLayout from '../components/AppLayout'
 import StatusBadge from '../components/StatusBadge'
 import Toast from '../components/Toast'
 import AddTaskModal from '../components/AddTaskModal'
+import Pagination from '../components/Pagination'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguage } from '../language/LanguageContext'
 import Icon from '../components/Icon'
@@ -21,6 +22,8 @@ function MyTasksPage() {
   const [timeFilter, setTimeFilter] = useState('all') // today, week, month, all
   const [openAddTaskModal, setOpenAddTaskModal] = useState(false)
   const [selectedFamilyId, setSelectedFamilyId] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['myTasks'],
@@ -170,6 +173,18 @@ function MyTasksPage() {
       },
     }
   }, [allTasks, searchQuery, timeFilter])
+
+  // Pagination for todo tasks
+  const todoTotalItems = todoTasks?.length || 0
+  const todoTotalPages = Math.ceil(todoTotalItems / itemsPerPage)
+  const todoStartIndex = (currentPage - 1) * itemsPerPage
+  const todoEndIndex = todoStartIndex + itemsPerPage
+  const paginatedTodoTasks = todoTasks?.slice(todoStartIndex, todoEndIndex) || []
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, timeFilter])
 
   // Cập nhật trạng thái task
   const statusMutation = useMutation({
@@ -385,7 +400,7 @@ function MyTasksPage() {
                   </div>
                 ) : todoTasks.length > 0 ? (
                   <div className="space-y-4">
-                    {todoTasks.map((task) => (
+                    {paginatedTodoTasks.map((task) => (
                       <div
                         key={task.id}
                         className="group relative bg-white dark:bg-[#1E1E1E] rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:shadow-md transition"
@@ -474,6 +489,19 @@ function MyTasksPage() {
                         />
                       </div>
                     ))}
+                    {todoTasks.length > 0 && (
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={todoTotalPages}
+                        onPageChange={setCurrentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={todoTotalItems}
+                        onItemsPerPageChange={(value) => {
+                          setItemsPerPage(value)
+                          setCurrentPage(1)
+                        }}
+                      />
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-slate-700 dark:text-slate-300">

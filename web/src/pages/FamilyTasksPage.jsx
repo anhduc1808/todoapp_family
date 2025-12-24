@@ -8,6 +8,7 @@ import StatusBadge from '../components/StatusBadge'
 import Toast from '../components/Toast'
 import AddTaskModal from '../components/AddTaskModal'
 import InviteMemberModal from '../components/InviteMemberModal'
+import Pagination from '../components/Pagination'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguage } from '../language/LanguageContext'
 import Icon from '../components/Icon'
@@ -27,6 +28,8 @@ function FamilyTasksPage() {
   const [sortBy, setSortBy] = useState('dueDate')
   const [sortOrder, setSortOrder] = useState('asc')
   const [searchQuery, setSearchQuery] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', familyId, selectedMemberId],
@@ -184,14 +187,23 @@ function FamilyTasksPage() {
         result = aCount - bCount
       }
       
-      // Áp dụng thứ tự sắp xếp (tăng/giảm dần)
       return sortOrder === 'desc' ? -result : result
     })
 
     return filtered
   }, [allTasks, statusFilter, timeFilter, sortBy, sortOrder, searchQuery])
 
-  // Tính thống kê cho danh sách task hiện tại (dựa trên filter)
+  // Pagination
+  const totalItems = tasks.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTasks = tasks.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [statusFilter, timeFilter, searchQuery, sortBy, sortOrder])
+
   const stats = useMemo(() => {
     const base = { todo: 0, 'in-progress': 0, done: 0 }
     for (const t of tasks) {
@@ -358,7 +370,6 @@ function FamilyTasksPage() {
               <Icon name="chart" className="text-slate-600 dark:text-slate-100 flex-shrink-0" size="sm" />
               <span className="whitespace-nowrap overflow-hidden text-ellipsis">{t('progressStats')}</span>
             </p>
-            {/* Chip hiển thị All Members / tên thành viên - đổi màu theo chế độ */}
             <p className="text-sm font-semibold text-white mb-3 min-w-0 overflow-hidden text-ellipsis bg-slate-800 dark:bg-slate-600 px-3 py-1.5 rounded-lg border border-slate-600 dark:border-slate-500">
               {currentMemberName}
             </p>
@@ -416,7 +427,6 @@ function FamilyTasksPage() {
           </div>
         )}
 
-        {/* Hàng trên: button tạo task + khối mã mời */}
         {canManageTasks ? (
           <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)]">
           <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm flex items-center justify-center">
@@ -529,7 +539,6 @@ function FamilyTasksPage() {
                   <button
                     key={s.value}
                     onClick={() => {
-                      // Nếu click vào cùng một option, đảo ngược thứ tự
                       if (sortBy === s.value) {
                         setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
                       } else {
@@ -621,6 +630,17 @@ function FamilyTasksPage() {
               )
               })}
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+              onItemsPerPageChange={(value) => {
+                setItemsPerPage(value)
+                setCurrentPage(1)
+              }}
+            />
           </div>
         ) : allTasks.length > 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50">

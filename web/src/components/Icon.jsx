@@ -1,3 +1,5 @@
+import React from 'react'
+
 // Icon component với style nhất quán
 function Icon({ name, className = '', size = 'md' }) {
   const sizeClasses = {
@@ -9,7 +11,7 @@ function Icon({ name, className = '', size = 'md' }) {
 
   const icons = {
     search: (
-      <svg className={sizeClasses[size]} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className={`${sizeClasses[size]} ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
     ),
@@ -166,7 +168,12 @@ function Icon({ name, className = '', size = 'md' }) {
     return null
   }
 
-  return <span className={className}>{icon}</span>
+  // Clone icon and add className to SVG
+  const iconWithClassName = icon && React.cloneElement(icon, {
+    className: `${icon.props.className} ${className}`.trim()
+  })
+  
+  return <span>{iconWithClassName || icon}</span>
 }
 
 export default Icon

@@ -51,7 +51,7 @@ function LoginPage() {
         }
         // Đợi một chút để đảm bảo state đã được cập nhật
         setTimeout(() => {
-          // Kiểm tra xem có redirect URL sau khi login không (ví dụ: join family link)
+          // Kiểm tra xem có redirect URL sau khi login không 
           const redirectAfterLogin = localStorage.getItem('redirectAfterLogin')
           if (redirectAfterLogin) {
             localStorage.removeItem('redirectAfterLogin')

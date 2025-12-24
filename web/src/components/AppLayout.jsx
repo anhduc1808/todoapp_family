@@ -81,7 +81,7 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
   return (
     <>
       <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#111827] flex transition-colors duration-200" style={{ position: 'relative', zIndex: 0 }}>
-        {/* Sidebar cam hạ sáng thêm 1 tone - có thu gọn */}
+   
         <aside
           className={`${collapsed ? 'w-20' : 'w-64'} bg-gradient-to-b from-[#e45a1a] to-[#d74f14] text-white flex flex-col shadow-lg transition-all duration-200`}
           style={{
@@ -89,9 +89,26 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
             backgroundImage: 'linear-gradient(to bottom, #e45a1a, #d74f14)',
           }}
         >
-          {/* Branding + toggle */}
+       
           <div className="p-4 flex items-center justify-between gap-2">
-            {!collapsed && <h2 className="text-xl font-bold">{t('home')}</h2>}
+            {!collapsed ? (
+              <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition">
+                <img
+                  src="/logo-icon-white.svg"
+                  alt="Family TodoApp"
+                  className="w-8 h-8"
+                />
+                <h2 className="text-xl font-bold">{t('home')}</h2>
+              </Link>
+            ) : (
+              <Link to="/" className="mx-auto hover:opacity-80 transition">
+                <img
+                  src="/logo-icon-white.svg"
+                  alt="Family TodoApp"
+                  className="w-8 h-8"
+                />
+              </Link>
+            )}
             <button
               onClick={() => {
                 setCollapsed((v) => {
@@ -106,7 +123,7 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
               title="Mở / thu gọn sidebar"
               aria-label="Mở / thu gọn sidebar"
             >
-              {/* Icon 3 gạch (menu) luôn hiển thị ở cả 2 trạng thái */}
+           
               <svg className="w-4 h-4 text-[#e45a1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -168,13 +185,15 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
               <Link
                 key={item.to}
                 to={item.to}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all group ${
                   item.active
                     ? 'bg-white text-orange-600 font-medium shadow-md'
                     : 'hover:bg-orange-500/50'
                 }`}
               >
-                {item.icon}
+                <span className={item.active ? '' : 'text-white/90 group-hover:text-white'}>
+                  {item.icon}
+                </span>
                 {!collapsed && <span>{item.label}</span>}
               </Link>
             ))}
@@ -184,11 +203,13 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
           <div className="p-4 border-t border-orange-400/30">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-500/50 transition-all w-full text-left"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-orange-500/50 transition-all w-full text-left group"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <span className="text-white/90 group-hover:text-white">
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </span>
               {!collapsed && <span>{t('logout')}</span>}
             </button>
           </div>
@@ -236,11 +257,11 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                 <LanguageSwitcher />
                 <div className="relative notification-dropdown">
                   <button
-                    className="relative w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105"
+                    className="relative w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105 group"
                     title="Thông báo"
                     onClick={() => setOpenBell((v) => !v)}
                   >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     {unreadCount > 0 && (
@@ -295,10 +316,10 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                 <div className="relative calendar-dropdown">
                   <button
                     onClick={() => setOpenCalendar((v) => !v)}
-                    className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105 cursor-pointer"
+                    className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105 cursor-pointer group"
                     title="Lịch"
                   >
-                    <Icon name="calendar" className="text-white" size="md" />
+                    <Icon name="calendar" className="transition-colors" style={{ color: 'rgba(255, 255, 255, 0.9)' }} size="md" onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 1)'} onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'} />
                   </button>
                 </div>
                 <div className="text-sm font-medium text-white" style={{ color: '#ffffff' }}>
@@ -311,10 +332,10 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                     e.stopPropagation()
                     toggleTheme()
                   }}
-                  className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105 cursor-pointer focus:outline-none relative z-10"
+                  className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition hover:scale-105 cursor-pointer focus:outline-none relative z-10 group"
                   title={isDark ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
                 >
-                  <Icon name={isDark ? 'sun' : 'moon'} className="text-white" size="md" />
+                  <Icon name={isDark ? 'sun' : 'moon'} className="text-white/90 group-hover:text-white transition-colors" size="md" />
                 </button>
               </div>
             </div>
