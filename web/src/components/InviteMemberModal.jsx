@@ -190,8 +190,6 @@ function InviteMemberModal({ isOpen, onClose, familyId, members, currentUserRole
   if (!isOpen) return null
 
   // Tự động dùng window.location.origin (domain thực tế khi deploy)
-  // - Development: http://localhost:5173
-  // - Production: https://your-app.vercel.app (tự động từ Vercel)
   const frontendUrl = import.meta.env.VITE_FRONTEND_URL || window.location.origin
   const projectLink = inviteCode || familyData?.family?.inviteCode
     ? `${frontendUrl}/join?code=${inviteCode || familyData?.family?.inviteCode}`

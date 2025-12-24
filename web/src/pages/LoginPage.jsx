@@ -38,13 +38,9 @@ function LoginPage() {
       // Backend chỉ nhận email, không nhận username
       const loginData = { email: username.trim(), password }
       
-      console.log('Sending login request to:', api.defaults.baseURL + '/auth/login')
-      console.log('Login data:', { email: loginData.email, password: '***' })
-      
       const res = await api.post('/auth/login', loginData)
       
       if (res.data && res.data.token && res.data.user) {
-        console.log('Login successful, calling login function')
         login(res.data)
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
@@ -64,8 +60,10 @@ function LoginPage() {
         setError('Invalid response from server')
       }
     } catch (err) {
-      console.error('Login error:', err)
-      console.error('Error response:', err.response?.data)
+      if (import.meta.env.DEV) {
+        console.error('Login error:', err)
+        console.error('Error response:', err.response?.data)
+      }
       const errorMessage = err.response?.data?.message || err.message || t('loginFailed') || 'Đăng nhập thất bại'
       setError(errorMessage)
     } finally {
@@ -131,7 +129,9 @@ function LoginPage() {
                 }
               })
               .catch((err) => {
-                console.error('Facebook login API error:', err)
+                if (import.meta.env.DEV) {
+                  console.error('Facebook login API error:', err)
+                }
                 setError(err.response?.data?.message || 'Đăng nhập Facebook thất bại')
               })
               .finally(() => {
@@ -146,12 +146,16 @@ function LoginPage() {
           }
         }, { scope: 'email,public_profile' })
       } catch (fbErr) {
-        console.error('Facebook SDK error:', fbErr)
+        if (import.meta.env.DEV) {
+          console.error('Facebook SDK error:', fbErr)
+        }
         setError('Lỗi khi gọi Facebook SDK: ' + (fbErr.message || 'Unknown error'))
         setLoading(false)
       }
     } catch (err) {
-      console.error('Facebook login error:', err)
+      if (import.meta.env.DEV) {
+        console.error('Facebook login error:', err)
+      }
       setError('Lỗi khi đăng nhập Facebook: ' + (err.message || 'Unknown error'))
       setLoading(false)
     }
@@ -248,7 +252,9 @@ function LoginPage() {
         }, 200)
         window.history.replaceState({}, '', '/login')
       } catch (err) {
-        console.error('Error parsing callback data:', err)
+        if (import.meta.env.DEV) {
+          console.error('Error parsing callback data:', err)
+        }
         setError('Lỗi khi xử lý thông tin đăng nhập')
       }
     }
@@ -266,14 +272,17 @@ function LoginPage() {
                 version: 'v18.0'
               })
               window.FB._initialized = true
-              console.log('Facebook SDK initialized with App ID:', fbAppId)
+              if (import.meta.env.DEV) {
+                console.log('Facebook SDK initialized with App ID:', fbAppId)
+              }
             }
           } catch (err) {
-            console.error('Error initializing Facebook SDK:', err)
+            if (import.meta.env.DEV) {
+              console.error('Error initializing Facebook SDK:', err)
+            }
           }
-        } else {
-          console.warn('Facebook App ID not found in environment variables')
         }
+        // Không log warning nếu không có Facebook App ID - đây là optional feature
       } else {
         const maxAttempts = 50
         let attempts = 0
@@ -284,7 +293,9 @@ function LoginPage() {
             initFacebookSDK()
           } else if (attempts >= maxAttempts) {
             clearInterval(checkSDK)
-            console.error('Facebook SDK failed to load after', maxAttempts * 100, 'ms')
+            if (import.meta.env.DEV) {
+              console.error('Facebook SDK failed to load after', maxAttempts * 100, 'ms')
+            }
           }
         }, 100)
       }

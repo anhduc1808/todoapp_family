@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useLanguage } from '../language/LanguageContext'
-import { translateText } from '../services/translationService'
+import { translateText, translateBatch } from '../services/translationService'
 
 /**
  * Hook để tự động translate dynamic content (user-generated content)
@@ -37,7 +37,9 @@ export function useTranslatedContent(originalText, enabled = true) {
         const translated = await translateText(originalText, language)
         setTranslatedText(translated)
       } catch (err) {
-        console.error('Translation error:', err)
+        if (import.meta.env.DEV) {
+          console.error('Translation error:', err)
+        }
         setError(err)
         // Fallback to original text
         setTranslatedText(originalText)
@@ -80,11 +82,12 @@ export function useTranslatedBatch(texts, enabled = true) {
       setError(null)
       
       try {
-        const { translateBatch } = await import('../services/translationService')
         const translated = await translateBatch(texts, language)
         setTranslatedTexts(translated)
       } catch (err) {
-        console.error('Batch translation error:', err)
+        if (import.meta.env.DEV) {
+          console.error('Batch translation error:', err)
+        }
         setError(err)
         setTranslatedTexts(texts)
       } finally {

@@ -31,7 +31,7 @@ class ErrorBoundary extends Component {
             >
               Tải lại trang
             </button>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm text-slate-500 mb-2">
                   Chi tiết lỗi (Development)

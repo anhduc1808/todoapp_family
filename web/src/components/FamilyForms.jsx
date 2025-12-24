@@ -73,7 +73,9 @@ export function JoinFamilyForm({ onSuccess }) {
     mutationFn: async () => {
       setLoading(true)
       setError('')
-      console.log('Joining family with code:', code)
+      if (import.meta.env.DEV) {
+        console.log('Joining family with code:', code)
+      }
       const res = await api.post('/families/join', { code: code.trim().toUpperCase() })
       return res.data
     },
@@ -83,13 +85,15 @@ export function JoinFamilyForm({ onSuccess }) {
       if (onSuccess) onSuccess()
     },
     onError: (err) => {
-      console.error('Join family error:', err)
-      console.error('Error details:', {
-        status: err.response?.status,
-        message: err.response?.data?.message,
-        url: err.config?.url,
-        method: err.config?.method
-      })
+      if (import.meta.env.DEV) {
+        console.error('Join family error:', err)
+        console.error('Error details:', {
+          status: err.response?.status,
+          message: err.response?.data?.message,
+          url: err.config?.url,
+          method: err.config?.method
+        })
+      }
       if (err.response?.status === 404) {
         // Kiểm tra xem có phải là "Invalid code" không
         const errorMessage = err.response?.data?.message || ''

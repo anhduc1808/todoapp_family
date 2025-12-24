@@ -7,31 +7,40 @@ function Pagination({ currentPage, totalPages, onPageChange, itemsPerPage, total
 
   const getPageNumbers = () => {
     const pages = []
-    const maxVisible = 5
+    const maxVisible = 3 // Giới hạn chỉ hiển thị tối đa 3 số trang
     
     if (totalPages <= maxVisible) {
+      // Nếu tổng số trang <= 3, hiển thị tất cả
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
     } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 5; i++) {
+      // Luôn hiển thị trang đầu và trang cuối
+      pages.push(1)
+      
+      if (currentPage <= 2) {
+        // Nếu đang ở trang 1-2, hiển thị: 1, 2, 3, ..., totalPages
+        for (let i = 2; i <= 3; i++) {
           pages.push(i)
         }
-        pages.push('...')
-        pages.push(totalPages)
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1)
-        pages.push('...')
-        for (let i = totalPages - 4; i <= totalPages; i++) {
+        if (totalPages > 3) {
+          pages.push('...')
+          pages.push(totalPages)
+        }
+      } else if (currentPage >= totalPages - 1) {
+        // Nếu đang ở trang cuối, hiển thị: 1, ..., totalPages-2, totalPages-1, totalPages
+        if (totalPages > 3) {
+          pages.push('...')
+        }
+        for (let i = totalPages - 1; i <= totalPages; i++) {
           pages.push(i)
         }
       } else {
-        pages.push(1)
+        // Ở giữa: hiển thị: 1, ..., currentPage-1, currentPage, currentPage+1, ..., totalPages
         pages.push('...')
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i)
-        }
+        pages.push(currentPage - 1)
+        pages.push(currentPage)
+        pages.push(currentPage + 1)
         pages.push('...')
         pages.push(totalPages)
       }

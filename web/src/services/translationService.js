@@ -17,7 +17,9 @@ export async function translateText(text, targetLang = 'vi', sourceLang = null) 
     // Fallback to original text if translation failed
     return text
   } catch (error) {
-    console.error('Translation error:', error)
+    if (import.meta.env.DEV) {
+      console.error('Translation error:', error)
+    }
     // Fallback: return original text if translation fails
     return text
   }
@@ -39,7 +41,9 @@ export async function translateBatch(texts, targetLang = 'vi', sourceLang = null
     
     return texts
   } catch (error) {
-    console.error('Batch translation error:', error)
+    if (import.meta.env.DEV) {
+      console.error('Batch translation error:', error)
+    }
     return texts
   }
 }
@@ -49,7 +53,9 @@ export async function checkTranslationAPI() {
     const response = await api.get('/translate/health')
     return response.data.success || false
   } catch (error) {
-    console.error('Translation API health check failed:', error)
+    if (import.meta.env.DEV) {
+      console.error('Translation API health check failed:', error)
+    }
     return false
   }
 }

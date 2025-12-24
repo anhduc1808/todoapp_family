@@ -131,6 +131,7 @@ const translations = {
     noFamilies: 'No family groups yet',
     noFamiliesDesc: 'Create a new group or use an invite code to join an existing family group.',
     clickToViewTasks: 'Click to view tasks in this family',
+    todayTasksCount: (count) => `Today there ${count === 1 ? 'is' : 'are'} ${count} task${count !== 1 ? 's' : ''} to do`,
     
     // Task Categories
     taskCategories: 'Task Categories',
@@ -254,7 +255,7 @@ const translations = {
     currentPassword: 'Current Password',
     newPassword: 'New Password',
     passwordMismatch: 'New passwords do not match',
-    passwordMinLength: 'New password must be at least 6 characters',
+    passwordMinLength: 'Password must be at least 8 characters',
     changePasswordSuccess: 'Password changed successfully!',
     changePasswordFailed: 'Failed to change password',
     processing: 'Processing...',
@@ -378,6 +379,7 @@ const translations = {
     noFamilies: 'Chưa có nhóm gia đình nào',
     noFamiliesDesc: 'Hãy tạo nhóm mới hoặc dùng mã mời để tham gia nhóm gia đình đã có.',
     clickToViewTasks: 'Nhấp để xem công việc trong gia đình này',
+    todayTasksCount: (count) => `Hôm nay có ${count} việc cần làm`,
     
     // Task Categories
     actions: 'Hành động',
@@ -522,7 +524,7 @@ const translations = {
     currentPassword: 'Mật khẩu hiện tại',
     newPassword: 'Mật khẩu mới',
     passwordMismatch: 'Mật khẩu mới không khớp',
-    passwordMinLength: 'Mật khẩu mới phải có ít nhất 6 ký tự',
+    passwordMinLength: 'Mật khẩu phải có ít nhất 8 ký tự',
     changePasswordSuccess: 'Đổi mật khẩu thành công!',
     changePasswordFailed: 'Đổi mật khẩu thất bại',
     processing: 'Đang xử lý...',
@@ -576,8 +578,12 @@ export function LanguageProvider({ children }) {
     return 'vi'
   })
 
-  const t = (key) => {
-    return translations[language]?.[key] || key
+  const t = (key, ...args) => {
+    const value = translations[language]?.[key]
+    if (typeof value === 'function') {
+      return value(...args)
+    }
+    return value || key
   }
 
   const changeLanguage = (lang) => {

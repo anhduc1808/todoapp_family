@@ -23,6 +23,11 @@ function RegisterPage() {
     e.preventDefault()
     setError('')
     
+    if (password.length < 8) {
+      setError(t('passwordMinLength') || 'Password must be at least 8 characters')
+      return
+    }
+    
     if (password !== confirmPassword) {
       setError(t('passwordMismatch') || 'Passwords do not match')
       return
@@ -42,7 +47,9 @@ function RegisterPage() {
         return
       }
       const res = await api.post('/auth/register', { name, email, password })
-      console.log('Register response:', res.data)
+      if (import.meta.env.DEV) {
+        console.log('Register response:', res.data)
+      }
       if (res.data && res.data.user && res.data.user.name) {
         login(res.data)
         navigate('/')
@@ -102,7 +109,9 @@ function RegisterPage() {
         }
       }, { scope: 'email,public_profile' })
     } catch (err) {
-      console.error('Facebook login error:', err)
+      if (import.meta.env.DEV) {
+        console.error('Facebook login error:', err)
+      }
       setError('Lỗi khi đăng nhập Facebook')
     }
   }
@@ -163,7 +172,9 @@ function RegisterPage() {
         setError('Google SDK chưa sẵn sàng. Vui lòng refresh trang và thử lại.')
       }
     } catch (err) {
-      console.error('Google login error:', err)
+      if (import.meta.env.DEV) {
+        console.error('Google login error:', err)
+      }
       setError('Lỗi khi đăng nhập Google')
     }
   }
@@ -232,6 +243,7 @@ function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-slate-400 text-slate-900 bg-white"
+                  minLength={8}
                   required
                 />
               </div>
@@ -243,6 +255,7 @@ function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-slate-400 text-slate-900 bg-white"
+                  minLength={8}
                   required
                 />
               </div>
@@ -255,7 +268,7 @@ function RegisterPage() {
                   className="w-4 h-4 text-orange-500 border-slate-400 rounded focus:ring-orange-500 cursor-pointer"
                   style={{ accentColor: '#F4511E' }}
                 />
-                <label htmlFor="agreeTerms" className="ml-2 text-sm text-slate-700 font-medium cursor-pointer">
+                <label htmlFor="agreeTerms" className="ml-2 text-sm text-slate-900 dark:text-slate-100 font-medium cursor-pointer">
                   {t('agreeToTerms') || 'I agree to all terms.'}
                 </label>
               </div>

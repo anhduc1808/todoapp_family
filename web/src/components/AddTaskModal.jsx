@@ -79,7 +79,9 @@ function AddTaskModal({ isOpen, onClose, familyId, members, onSuccess, autoAssig
       }, 1000)
     },
     onError: (err) => {
-      console.error('Error creating task:', err)
+      if (import.meta.env.DEV) {
+        console.error('Error creating task:', err)
+      }
       const errorMessage = err.response?.data?.message || err.message || t('createFailed')
       setToast({ message: errorMessage, type: 'error' })
     },
@@ -110,7 +112,9 @@ function AddTaskModal({ isOpen, onClose, familyId, members, onSuccess, autoAssig
         // Resize và compress ảnh trước khi convert sang base64
         imageUrlToSend = await resizeImage(image, 800, 0.8) // max width 800px, quality 80%
       } catch (err) {
-        console.error('Error processing image:', err)
+        if (import.meta.env.DEV) {
+          console.error('Error processing image:', err)
+        }
         setToast({ message: t('imageProcessingError'), type: 'error' })
         return
       }

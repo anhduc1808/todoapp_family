@@ -187,7 +187,9 @@ function TaskCategoriesPage() {
         type="status"
         onUpdate={(newName) => {
           // Handle update logic here
-          console.log('Update status:', selectedStatus?.id, 'to:', newName)
+          if (import.meta.env.DEV) {
+            console.log('Update status:', selectedStatus?.id, 'to:', newName)
+          }
           setShowEditStatusModal(false)
           setSelectedStatus(null)
           setEditStatusName('')
@@ -209,7 +211,9 @@ function TaskCategoriesPage() {
         statusName={editPriorityName}
         type="priority"
         onUpdate={(newName) => {
-          console.log('Update priority:', selectedPriority?.id, 'to:', newName)
+          if (import.meta.env.DEV) {
+            console.log('Update priority:', selectedPriority?.id, 'to:', newName)
+          }
           setShowEditPriorityModal(false)
           setSelectedPriority(null)
           setEditPriorityName('')

@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
           })
           .then((res) => {
             const userData = res.data.user || {}
-            console.log('Loaded user from /auth/me:', userData)
             setUser(userData)
             setIsLoading(false)
           })
@@ -39,17 +38,23 @@ export function AuthProvider({ children }) {
 
   const login = (data) => {
     if (!data || !data.token || !data.user) {
-      console.error('Invalid login data:', data)
+      if (import.meta.env.DEV) {
+        console.error('Invalid login data:', data)
+      }
       return
     }
-    console.log('Setting token and user:', { token: data.token, user: data.user })
+    if (import.meta.env.DEV) {
+      console.log('Setting token and user:', { token: data.token, user: data.user })
+    }
     const userData = {
       id: data.user.id,
       name: data.user.name || data.user.email?.split('@')[0] || 'User',
       email: data.user.email,
       avatarUrl: data.user.avatarUrl || null,
     }
-    console.log('Setting user data:', userData)
+    if (import.meta.env.DEV) {
+      console.log('Setting user data:', userData)
+    }
     setUser(userData)
     setToken(data.token)
     localStorage.setItem('token', data.token)
@@ -72,7 +77,9 @@ export function AuthProvider({ children }) {
         setUser(userData)
         return userData
       } catch (err) {
-        console.error('Failed to refresh user:', err)
+        if (import.meta.env.DEV) {
+          console.error('Failed to refresh user:', err)
+        }
         return null
       }
     }

@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || 'https://family-todoapp-backend-production.up.railway.app/api',
+  timeout: 30000, // 30 seconds
 })
 
 api.interceptors.request.use((config) => {

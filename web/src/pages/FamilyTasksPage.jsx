@@ -12,6 +12,7 @@ import Pagination from '../components/Pagination'
 import { useAuth } from '../auth/AuthContext'
 import { useLanguage } from '../language/LanguageContext'
 import Icon from '../components/Icon'
+import { DEFAULT_ITEMS_PER_PAGE } from '../utils'
 
 function FamilyTasksPage() {
   const { t: tRaw } = useLanguage()
@@ -29,7 +30,7 @@ function FamilyTasksPage() {
   const [sortOrder, setSortOrder] = useState('asc')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
 
   const { data: tasksData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', familyId, selectedMemberId],

@@ -4,6 +4,10 @@ const express = require('express');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const { PrismaClient } = require('@prisma/client');
+const logger = require('./utils/logger');
+const errorHandler = require('./middleware/errorHandler');
+const notFound = require('./middleware/notFound');
+const config = require('./config');
 const authRoutes = require('./modules/auth/routes');
 const familyRoutes = require('./modules/families/routes');
 const taskRoutes = require('./modules/tasks/routes');
@@ -15,55 +19,49 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: config.allowedOrigins.length > 0 ? config.allowedOrigins : '*',
+    credentials: true,
   },
 });
 
 io.on('connection', (socket) => {
-  console.log('Client connected', socket.id);
+  logger.info('Client connected', socket.id);
 
   socket.on('join_family', (familyId) => {
     socket.join(`family_${familyId}`);
+    logger.debug(`Client ${socket.id} joined family ${familyId}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected', socket.id);
+    logger.info('Client disconnected', socket.id);
   });
 });
 
-app.use(cors());
+app.use(cors({
+  origin: config.allowedOrigins.length > 0 ? config.allowedOrigins : '*',
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Attach Prisma and io to request
+// Initialize Prisma Client
 let prisma;
 try {
-  // Check if Prisma Client exists
-  try {
-    prisma = new PrismaClient();
-    console.log('Prisma Client initialized successfully');
-  } catch (prismaError) {
-    console.error('Prisma Client initialization error:', prismaError);
-    console.error('Error details:', {
-      message: prismaError.message,
-      code: prismaError.code,
-      path: prismaError.path
-    });
-    throw prismaError;
-  }
+  prisma = new PrismaClient();
+  logger.info('Prisma Client initialized successfully');
 } catch (error) {
-  console.error('Failed to initialize Prisma Client:', error);
-  console.error('Make sure Prisma Client is generated. Run: npx prisma generate');
+  logger.error('Failed to initialize Prisma Client:', error);
   process.exit(1);
 }
 
 // Test database connection
 prisma.$connect()
   .then(() => {
-    console.log('Database connected successfully');
+    logger.info('Database connected successfully');
   })
   .catch((error) => {
-    console.error('Database connection failed:', error);
+    logger.error('Database connection failed:', error);
+    process.exit(1);
   });
 
 app.use((req, res, next) => {
@@ -72,130 +70,103 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
-    // Test database connection
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       message: 'Family TodoApp backend running',
       database: 'connected',
-      prisma: 'initialized',
-      env: {
-        hasDatabaseUrl: !!process.env.DATABASE_URL,
-        hasJwtSecret: !!process.env.JWT_SECRET,
-        nodeEnv: process.env.NODE_ENV
-      }
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).json({ 
-      status: 'error', 
+    logger.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
       message: 'Database connection failed',
-      error: error.message,
-      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
     });
   }
 });
 
-// Test endpoint để kiểm tra Prisma
-app.get('/api/test/prisma', async (req, res) => {
-  try {
-    if (!prisma) {
-      return res.status(500).json({ error: 'Prisma client not initialized' });
+// Test endpoints - Only available in development
+if (process.env.NODE_ENV === 'development') {
+  app.get('/api/test/prisma', async (req, res) => {
+    try {
+      if (!prisma) {
+        return res.status(500).json({ error: 'Prisma client not initialized' });
+      }
+      const result = await prisma.$queryRaw`SELECT 1 as test`;
+      res.json({ success: true, prisma: 'working', result });
+    } catch (error) {
+      logger.error('Prisma test error:', error);
+      res.status(500).json({
+        error: 'Prisma test failed',
+        message: error.message,
+        code: error.code,
+      });
     }
-    
-    // Test simple query
-    const result = await prisma.$queryRaw`SELECT 1 as test`;
-    res.json({ 
-      success: true, 
-      prisma: 'working',
-      result: result 
-    });
-  } catch (error) {
-    console.error('Prisma test error:', error);
-    res.status(500).json({ 
-      error: 'Prisma test failed',
-      message: error.message,
-      code: error.code,
-      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
-    });
-  }
-});
+  });
 
-// Test endpoint để kiểm tra User table
-app.get('/api/test/users', async (req, res) => {
-  try {
-    if (!prisma) {
-      return res.status(500).json({ error: 'Prisma client not initialized' });
+  app.get('/api/test/users', async (req, res) => {
+    try {
+      if (!prisma) {
+        return res.status(500).json({ error: 'Prisma client not initialized' });
+      }
+      const userCount = await prisma.user.count();
+      const users = await prisma.user.findMany({
+        select: { id: true, email: true, name: true, createdAt: true },
+        take: 5
+      });
+      res.json({ success: true, userCount, users, message: 'User table accessible' });
+    } catch (error) {
+      logger.error('User table test error:', error);
+      res.status(500).json({
+        error: 'User table test failed',
+        message: error.message,
+        code: error.code,
+      });
     }
-    
-    const userCount = await prisma.user.count();
-    const users = await prisma.user.findMany({
-      select: { id: true, email: true, name: true, createdAt: true },
-      take: 5
-    });
-    res.json({ 
-      success: true, 
-      userCount: userCount,
-      users: users,
-      message: 'User table accessible'
-    });
-  } catch (error) {
-    console.error('User table test error:', error);
-    res.status(500).json({ 
-      error: 'User table test failed',
-      message: error.message,
-      code: error.code,
-      meta: error.meta,
-      stack: process.env.NODE_ENV !== 'production' ? error.stack : undefined
-    });
-  }
-});
+  });
+}
 
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/families', familyRoutes);
 app.use('/api', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/translate', translationRoutes);
 
-// Debug: Log all registered routes
-if (process.env.NODE_ENV !== 'production') {
-  console.log('Registered routes:');
-  console.log('  POST /api/families/join');
-  console.log('  GET /api/families/:id');
-  console.log('  POST /api/families/:id/invite');
-}
+// 404 Handler (must be before error handler)
+app.use(notFound);
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  console.error('Error stack:', err.stack);
-  res.status(500).json({
-    message: 'Internal server error',
-    error: process.env.NODE_ENV !== 'production' ? err.message : undefined,
-    code: err.code || 'UNKNOWN_ERROR'
-  });
-});
+// Global Error Handler (must be last)
+app.use(errorHandler);
 
-// 404 handler
-app.use((req, res) => {
-  console.log('404 - Route not found:', req.method, req.path);
-  console.log('Available routes:');
-  console.log('  POST /api/families/join');
-  console.log('  GET /api/families/:id');
-  res.status(404).json({ 
-    message: 'Route not found',
-    method: req.method,
-    path: req.path,
-    availableRoutes: ['POST /api/families/join', 'GET /api/families/:id']
-  });
-});
-
-const PORT = process.env.PORT || 4000;
+// Start server
+const PORT = config.port;
 server.listen(PORT, () => {
-  console.log(`Backend server listening on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
-  console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? 'Set' : 'Not set'}`);
+  logger.info(`Backend server listening on port ${PORT}`);
+  logger.info(`Environment: ${config.nodeEnv}`);
+  logger.info(`Database: ${config.databaseUrl ? 'Configured' : 'Not configured'}`);
+  logger.info(`JWT Secret: ${config.jwtSecret ? 'Set' : 'Using default (NOT SECURE)'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  await prisma.$disconnect();
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  await prisma.$disconnect();
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
 });

@@ -48,11 +48,8 @@ export function ThemeProvider({ children }) {
     const rootElement = document.getElementById('root')
     
     if (!html || !body) {
-      console.warn('DOM elements not ready yet')
       return
     }
-    
-    console.log('Theme effect running, isDark:', isDark)
     
     if (isDark) {
       html.classList.add('dark')
@@ -81,22 +78,6 @@ export function ThemeProvider({ children }) {
         rootElement.style.color = '#1E293B'
       }
       localStorage.setItem('theme', 'light')
-      console.log('Effect: Applied light mode')
-    }
-    
-    void root.offsetHeight
-    void body.offsetHeight
-    if (rootElement) void rootElement.offsetHeight
-    
-    try {
-      window.getComputedStyle(root).color
-      window.getComputedStyle(body).backgroundColor
-      
-      console.log('Final HTML classes:', html.className)
-      console.log('Final localStorage theme:', localStorage.getItem('theme'))
-      console.log('Body background:', window.getComputedStyle(body).backgroundColor)
-    } catch (e) {
-      console.warn('Error getting computed styles:', e)
     }
   }, [isDark])
 
@@ -127,7 +108,6 @@ export function ThemeProvider({ children }) {
         root.style.color = '#E2E2E2'
       }
       localStorage.setItem('theme', 'dark')
-      console.log('Applied dark mode, classes:', html.className)
     } else {
       html.classList.remove('dark')
       html.classList.add('light')
@@ -141,7 +121,6 @@ export function ThemeProvider({ children }) {
         root.style.color = '#111827'
       }
       localStorage.setItem('theme', 'light')
-      console.log('Applied light mode, classes:', html.className)
       
       // Force remove dark classes từ tất cả elements có thể
       const allElements = document.querySelectorAll('*')
@@ -185,7 +164,7 @@ export function useTheme() {
   const context = useContext(ThemeContext)
   if (!context) {
     // Fallback để tránh lỗi khi hot reload
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn('useTheme called outside ThemeProvider, using fallback')
     }
     const fallbackIsDark = typeof window !== 'undefined' 

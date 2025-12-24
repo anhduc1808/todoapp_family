@@ -9,6 +9,7 @@ import { useAuth } from '../auth/AuthContext'
 import Icon from '../components/Icon'
 import Toast from '../components/Toast'
 import Pagination from '../components/Pagination'
+import { DEFAULT_ITEMS_PER_PAGE } from '../utils'
 
 function DashboardPage() {
   const { t, language } = useLanguage()
@@ -19,7 +20,7 @@ function DashboardPage() {
   const [showJoinForm, setShowJoinForm] = useState(false)
   const [toast, setToast] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(6)
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
   
   const { data, isLoading, error: queryError } = useQuery({
     queryKey: ['families'],
@@ -257,8 +258,8 @@ function DashboardPage() {
                           </h3>
                           <p className="text-xs text-white/80">
                             {todayTasksCount > 0 
-                              ? `Hôm nay có ${todayTasksCount} việc cần làm`
-                              : 'Nhấp để xem công việc trong gia đình này'
+                              ? t('todayTasksCount', todayTasksCount)
+                              : t('clickToViewTasks')
                             }
                           </p>
                         </div>

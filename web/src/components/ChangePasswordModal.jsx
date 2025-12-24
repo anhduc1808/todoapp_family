@@ -19,8 +19,8 @@ function ChangePasswordModal({ isOpen, onClose }) {
       return
     }
 
-    if (newPassword.length < 6) {
-      setError(t('passwordMinLength') || 'Mật khẩu mới phải có ít nhất 6 ký tự')
+    if (newPassword.length < 8) {
+      setError(t('passwordMinLength') || 'Mật khẩu mới phải có ít nhất 8 ký tự')
       return
     }
 
@@ -67,6 +67,7 @@ function ChangePasswordModal({ isOpen, onClose }) {
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              minLength={8}
               required
             />
           </div>
