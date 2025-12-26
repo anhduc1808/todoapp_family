@@ -162,6 +162,35 @@ const translations = {
     createTask: 'Create Task',
     creating: 'Creating...',
     
+    // Comments & Reactions
+    comments: 'Comments',
+    addComment: 'Add a comment',
+    writeComment: 'Write a comment...',
+    postComment: 'Post Comment',
+    posting: 'Posting...',
+    noComments: 'No comments yet',
+    deleteComment: 'Delete Comment',
+    confirmDeleteComment: 'Are you sure you want to delete this comment?',
+    commentDeleted: 'Comment deleted successfully',
+    commentFailed: 'Failed to post comment',
+    reactions: 'Reactions',
+    addReaction: 'Add Reaction',
+    removeReaction: 'Remove Reaction',
+    like: 'Like',
+    love: 'Love',
+    haha: 'Haha',
+    wow: 'Wow',
+    sad: 'Sad',
+    angry: 'Angry',
+    reactToTask: 'React to this task',
+    noReactions: 'No reactions yet',
+    
+    // Notifications
+    notificationAssigned: 'You have been assigned a new task',
+    notificationOverdue: 'Task is overdue',
+    notificationComment: 'New comment on task',
+    notificationReaction: 'New reaction on task',
+    
     // Invite Member Modal
     sendInvite: 'Send an invite to a new member',
     inviteByEmail: 'Invite by Email',
@@ -408,6 +437,35 @@ const translations = {
     selectMembers: 'Chọn thành viên',
     createTask: 'Tạo công việc',
     creating: 'Đang tạo...',
+    
+    // Comments & Reactions
+    comments: 'Bình luận',
+    addComment: 'Thêm bình luận',
+    writeComment: 'Viết bình luận...',
+    postComment: 'Đăng bình luận',
+    posting: 'Đang đăng...',
+    noComments: 'Chưa có bình luận nào',
+    deleteComment: 'Xóa bình luận',
+    confirmDeleteComment: 'Bạn có chắc muốn xóa bình luận này?',
+    commentDeleted: 'Đã xóa bình luận thành công',
+    commentFailed: 'Đăng bình luận thất bại',
+    reactions: 'Cảm xúc',
+    addReaction: 'Thêm cảm xúc',
+    removeReaction: 'Bỏ cảm xúc',
+    like: 'Thích',
+    love: 'Yêu thích',
+    haha: 'Haha',
+    wow: 'Wow',
+    sad: 'Buồn',
+    angry: 'Giận',
+    reactToTask: 'Bày tỏ cảm xúc về công việc này',
+    noReactions: 'Chưa có cảm xúc nào',
+    
+    // Notifications
+    notificationAssigned: 'Bạn được giao việc mới',
+    notificationOverdue: 'Công việc đã quá hạn',
+    notificationComment: 'Có bình luận mới trên công việc',
+    notificationReaction: 'Có cảm xúc mới trên công việc',
     
     // Invite Member Modal
     sendInvite: 'Gửi lời mời đến thành viên mới',

@@ -16,6 +16,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useLanguage } from '../language/LanguageContext'
 import { useTranslatedContent } from '../hooks/useTranslatedContent'
 import Icon from '../components/Icon'
+import socket from '../realtime/socket'
 
 function TaskDetailPage() {
   const { t } = useLanguage()
@@ -59,6 +60,9 @@ function TaskDetailPage() {
   const [dueDate, setDueDate] = useState('')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState(null)
+  const [commentContent, setCommentContent] = useState('')
+  const [addingComment, setAddingComment] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
 
   const toInputValue = (dateStr) => {
     if (!dateStr) return ''
@@ -73,6 +77,66 @@ function TaskDetailPage() {
       setDueDate(task.dueDate ? toInputValue(task.dueDate) : '')
     }
   }, [task])
+
+  // Socket.IO: Lắng nghe real-time updates cho comments và reactions
+  useEffect(() => {
+    if (!task?.familyId) return
+
+    // Kết nối socket nếu chưa kết nối
+    if (!socket.connected) {
+      try {
+        socket.connect()
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('Socket connection failed, will retry:', error)
+        }
+      }
+    }
+
+    // Join family room khi socket đã kết nối
+    const handleConnect = () => {
+      socket.emit('join_family', task.familyId)
+    }
+
+    // Nếu đã kết nối, join ngay lập tức
+    if (socket.connected) {
+      socket.emit('join_family', task.familyId)
+    }
+
+    // Lắng nghe comment_added event
+    const handleCommentAdded = () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    }
+
+    // Lắng nghe comment_deleted event
+    const handleCommentDeleted = () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    }
+
+    // Lắng nghe reaction_added event
+    const handleReactionAdded = () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    }
+
+    // Lắng nghe reaction_removed event
+    const handleReactionRemoved = () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    }
+
+    socket.on('connect', handleConnect)
+    socket.on('comment_added', handleCommentAdded)
+    socket.on('comment_deleted', handleCommentDeleted)
+    socket.on('reaction_added', handleReactionAdded)
+    socket.on('reaction_removed', handleReactionRemoved)
+
+    return () => {
+      socket.off('connect', handleConnect)
+      socket.off('comment_added', handleCommentAdded)
+      socket.off('comment_deleted', handleCommentDeleted)
+      socket.off('reaction_added', handleReactionAdded)
+      socket.off('reaction_removed', handleReactionRemoved)
+    }
+  }, [task?.familyId, taskId, queryClient])
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -119,6 +183,70 @@ function TaskDetailPage() {
       setToast({ message: err.response?.data?.message || t('updateFailed'), type: 'error' })
     },
   })
+
+  const addCommentMutation = useMutation({
+    mutationFn: async (content) => {
+      const res = await api.post(`/tasks/${taskId}/comments`, { content })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      setCommentContent('')
+      setToast({ message: t('createSuccess'), type: 'success' })
+    },
+    onError: (err) => {
+      setToast({ message: err.response?.data?.message || t('commentFailed'), type: 'error' })
+    },
+    onSettled: () => setAddingComment(false),
+  })
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId) => {
+      await api.delete(`/tasks/${taskId}/comments/${commentId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+      setToast({ message: t('commentDeleted'), type: 'success' })
+    },
+    onError: (err) => {
+      setToast({ message: err.response?.data?.message || 'Xóa bình luận thất bại', type: 'error' })
+    },
+  })
+
+  const addReactionMutation = useMutation({
+    mutationFn: async (type) => {
+      const res = await api.post(`/tasks/${taskId}/reactions`, { type })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    },
+    onError: (err) => {
+      if (import.meta.env.DEV) {
+        console.error('Add reaction error:', err)
+      }
+    },
+  })
+
+  const removeReactionMutation = useMutation({
+    mutationFn: async (reactionId) => {
+      await api.delete(`/tasks/${taskId}/reactions/${reactionId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] })
+    },
+    onError: (err) => {
+      if (import.meta.env.DEV) {
+        console.error('Remove reaction error:', err)
+      }
+    },
+  })
+
+  const handleAddComment = () => {
+    if (!commentContent.trim()) return
+    setAddingComment(true)
+    addCommentMutation.mutate(commentContent.trim())
+  }
 
   const handleDelete = async () => {
     if (!task) return
@@ -393,18 +521,191 @@ function TaskDetailPage() {
           </div>
         </form>
 
-        {/* Placeholder cho timeline & bình luận sau này */}
-        <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1F2937] px-6 py-8 text-center shadow-sm">
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-slate-600 dark:to-slate-500 flex items-center justify-center">
-              <Icon name="chart" className="text-slate-700 dark:text-white" size="xl" />
+        {/* Reactions Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Icon name="heart" className="text-slate-900 dark:text-slate-100" size="sm" />
+            <span>{t('reactions')}</span>
+          </h3>
+          <div className="flex items-center gap-3 flex-wrap">
+            {task.reactions && Array.isArray(task.reactions) && task.reactions.length > 0 ? (
+              task.reactions.map((reaction) => (
+                <button
+                  key={reaction.id}
+                  onClick={() => {
+                    if (reaction.userId === user?.id) {
+                      // Remove reaction
+                      removeReactionMutation.mutate(reaction.id)
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] px-3 py-2 text-sm text-slate-900 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
+                >
+                  <span className="text-lg">
+                    {reaction.type === 'like' && '👍'}
+                    {reaction.type === 'love' && '❤️'}
+                    {reaction.type === 'haha' && '😂'}
+                    {reaction.type === 'wow' && '😮'}
+                    {reaction.type === 'sad' && '😢'}
+                    {reaction.type === 'angry' && '😠'}
+                  </span>
+                  <span>{reaction.user.name}</span>
+                </button>
+              ))
+            ) : (
+              <p className="text-sm text-slate-600 dark:text-slate-400">{t('noReactions')}</p>
+            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowReactionPicker(!showReactionPicker)}
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] px-3 py-2 text-sm text-slate-900 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition"
+              >
+                <Icon name="plus" className="text-slate-900 dark:text-slate-200" size="sm" />
+                <span>{t('addReaction')}</span>
+              </button>
+              {showReactionPicker && (
+                <div className="flex items-center gap-2 rounded-lg border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] p-2 shadow-lg">
+                  {[
+                    { type: 'like', emoji: '👍', label: t('like') },
+                    { type: 'love', emoji: '❤️', label: t('love') },
+                    { type: 'haha', emoji: '😂', label: t('haha') },
+                    { type: 'wow', emoji: '😮', label: t('wow') },
+                    { type: 'sad', emoji: '😢', label: t('sad') },
+                    { type: 'angry', emoji: '😠', label: t('angry') },
+                  ].map((r) => (
+                    <button
+                      key={r.type}
+                      onClick={() => {
+                        addReactionMutation.mutate(r.type)
+                        setShowReactionPicker(false)
+                      }}
+                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-600 transition"
+                      title={r.label}
+                    >
+                      <span className="text-2xl">{r.emoji}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
-              <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">Tính năng sắp ra mắt</p>
-              <p className="text-sm text-slate-700 dark:text-slate-300 max-w-md">
-                Timeline tiến độ, biểu đồ và bình luận sẽ được hiển thị chi tiết hơn trong giai đoạn sau.
-              </p>
+          </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <Icon name="message" className="text-slate-900 dark:text-slate-100" size="sm" />
+            <span>{t('comments')}</span>
+            {task.comments && Array.isArray(task.comments) && task.comments.length > 0 && (
+              <span className="text-sm font-normal text-slate-600 dark:text-slate-400">
+                ({task.comments.length})
+              </span>
+            )}
+          </h3>
+
+          {/* Add Comment Form */}
+          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] p-4">
+            <textarea
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              placeholder={t('writeComment')}
+              className="w-full rounded-lg border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#25292D] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none"
+              rows="3"
+            />
+            <div className="flex justify-end mt-3">
+              <button
+                onClick={handleAddComment}
+                disabled={!commentContent.trim() || addingComment}
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-600 to-blue-600 px-4 py-2 text-sm font-semibold text-white hover:from-sky-700 hover:to-blue-700 shadow-md hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Icon name={addingComment ? 'hourglass' : 'send'} className="text-white" size="sm" />
+                <span>{addingComment ? t('posting') : t('postComment')}</span>
+              </button>
             </div>
+          </div>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {task.comments && task.comments.length > 0 ? (
+              task.comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="rounded-xl border-2 border-slate-200 dark:border-slate-500 bg-white dark:bg-[#1F2937] p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-100 to-indigo-100 dark:from-slate-600 dark:to-slate-500 flex items-center justify-center flex-shrink-0">
+                      {comment.user.avatarUrl ? (
+                        <img
+                          src={comment.user.avatarUrl}
+                          alt={comment.user.name}
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-slate-700 dark:text-white font-semibold text-sm">
+                          {comment.user.name[0]?.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <div>
+                          <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                            {comment.user.name}
+                          </p>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">
+                            {new Date(comment.createdAt).toLocaleString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                        {comment.userId === user?.id && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm(t('confirmDeleteComment'))) {
+                                deleteCommentMutation.mutate(comment.id)
+                              }
+                            }}
+                            className="p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                            title={t('deleteComment')}
+                          >
+                            <Icon name="trash" className="text-red-600 dark:text-red-400" size="sm" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">
+                        {comment.content}
+                      </p>
+                      {/* Comment Reactions */}
+                      {comment.reactions && comment.reactions.length > 0 && (
+                        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-500">
+                          {comment.reactions.map((reaction) => (
+                            <span
+                              key={reaction.id}
+                              className="text-xs text-slate-600 dark:text-slate-400"
+                              title={reaction.user.name}
+                            >
+                              {reaction.type === 'like' && '👍'}
+                              {reaction.type === 'love' && '❤️'}
+                              {reaction.type === 'haha' && '😂'}
+                              {reaction.type === 'wow' && '😮'}
+                              {reaction.type === 'sad' && '😢'}
+                              {reaction.type === 'angry' && '😠'}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1F2937] px-6 py-8 text-center">
+                <p className="text-sm text-slate-600 dark:text-slate-400">{t('noComments')}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

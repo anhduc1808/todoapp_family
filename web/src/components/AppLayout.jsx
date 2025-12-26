@@ -9,6 +9,7 @@ import ChangePasswordModal from './ChangePasswordModal'
 import CalendarModal from './CalendarModal'
 import LanguageSwitcher from './LanguageSwitcher'
 import Icon from './Icon'
+import socket from '../realtime/socket'
 
 function AppLayout({ children, title, description, actions, showSearch = false, searchValue = '', onSearchChange }) {
   const { user, logout } = useAuth()
@@ -47,6 +48,55 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
     },
   })
 
+  // Socket.IO: Lắng nghe thông báo mới
+  useEffect(() => {
+    if (!user) {
+      // Disconnect socket khi user logout
+      if (socket.connected) {
+        socket.disconnect()
+      }
+      return
+    }
+
+    // Kết nối socket nếu chưa kết nối
+    if (!socket.connected) {
+      try {
+        socket.connect()
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('Socket connection failed, will retry:', error)
+        }
+      }
+    }
+
+    const handleNewNotification = () => {
+      // Refresh notifications khi có thông báo mới
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    }
+
+    const handleConnect = () => {
+      if (import.meta.env.DEV) {
+        console.log('Socket connected')
+      }
+    }
+
+    const handleDisconnect = () => {
+      if (import.meta.env.DEV) {
+        console.log('Socket disconnected')
+      }
+    }
+
+    // Lắng nghe events
+    socket.on('notification_new', handleNewNotification)
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
+
+    return () => {
+      socket.off('notification_new', handleNewNotification)
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
+    }
+  }, [user, queryClient])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -282,7 +332,14 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                           notifications.map((n) => (
                             <button
                               key={n.id}
-                              onClick={() => markReadMutation.mutate(n.id)}
+                              onClick={() => {
+                                markReadMutation.mutate(n.id)
+                                // Navigate to task detail page if task exists
+                                if (n.taskId) {
+                                  navigate(`/tasks/${n.taskId}`)
+                                  setOpenBell(false)
+                                }
+                              }}
                               className={`w-full text-left px-3 py-2 border-b border-slate-100 dark:border-slate-800 transition ${
                                 !n.isRead
                                   ? 'bg-orange-50 dark:bg-orange-900/40 border-l-4 border-orange-400'
@@ -291,8 +348,10 @@ function AppLayout({ children, title, description, actions, showSearch = false, 
                             >
                               <div className="flex items-center gap-2 mb-0.5">
                                 <span className="font-semibold text-slate-900 dark:text-white">
-                                  {n.type === 'assigned' && 'Bạn được giao việc mới'}
-                                  {n.type === 'overdue' && 'Công việc đã quá hạn'}
+                                  {n.type === 'assigned' && t('notificationAssigned')}
+                                  {n.type === 'overdue' && t('notificationOverdue')}
+                                  {n.type === 'comment' && t('notificationComment')}
+                                  {n.type === 'reaction' && t('notificationReaction')}
                                 </span>
                                 {!n.isRead && (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-100 border border-orange-200 dark:border-orange-700">

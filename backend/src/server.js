@@ -21,7 +21,12 @@ const io = new Server(server, {
   cors: {
     origin: config.allowedOrigins.length > 0 ? config.allowedOrigins : '*',
     credentials: true,
+    methods: ['GET', 'POST'],
   },
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 
 io.on('connection', (socket) => {
